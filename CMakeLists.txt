@@ -3,4 +3,8 @@ project(CTetDx)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(CTetDx main.cpp)
+set(SOURCES
+        src/main.cpp
+)
+
+add_executable(CTetDx ${SOURCES})
