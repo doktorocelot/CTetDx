@@ -7,4 +7,6 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdStr, i
     window_show(window.window);
     window_loop(&window);
     window_cleanup(&window);
+    
+    return 0;
 }
