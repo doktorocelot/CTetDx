@@ -58,15 +58,19 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
     ctx->blockMesh.indices = BLOCK_BATCH_INDICES;
 }
 
+void setBlockVertices(BlockGroup *group, float x, float y) {
+    group->vertices[0].position = DirectX::XMFLOAT3(x, y, 0.0f);
+    group->vertices[1].position = DirectX::XMFLOAT3(x + 1, y, 0.0f);
+    group->vertices[2].position = DirectX::XMFLOAT3(x, y + 1, 0.0f);
+    group->vertices[3].position = DirectX::XMFLOAT3(x + 1, y + 1, 0.0f);
+}
+
 void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11DeviceContext *deviceContext) {
     auto pieceOffset = engine->active.pos;
 
     for (int i = 0; i < 4; i++) {
         auto coords = point_addToNew(pieceOffset, engine->active.piece.coords[i]);
-        batch->activePiece[i].vertices[0].position = DirectX::XMFLOAT3((float) coords.x, (float) coords.y, 0.0f);
-        batch->activePiece[i].vertices[1].position = DirectX::XMFLOAT3((float) coords.x + 1, (float) coords.y, 0.0f);
-        batch->activePiece[i].vertices[2].position = DirectX::XMFLOAT3((float) coords.x, (float) coords.y + 1, 0.0f);
-        batch->activePiece[i].vertices[3].position = DirectX::XMFLOAT3((float) coords.x + 1, (float) coords.y + 1, 0.0f);
+        setBlockVertices(&batch->activePiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
     }
 
     D3D11_MAPPED_SUBRESOURCE mappedResource;
