@@ -1,7 +1,12 @@
 #include "d3d-game.hpp"
 #include "check-result.hpp"
 
-static constexpr int BLOCK_BATCH_BLOCKS = 4;
+
+static constexpr int BLOCK_BATCH_ACTIVE = PIECE_BLOCK_COUNT;
+static constexpr int BLOCK_BATCH_NEXT = PIECE_BLOCK_COUNT * NEXT_QUEUE_LENGTH;
+static constexpr int BLOCK_BATCH_FIELD = PIECE_BLOCK_COUNT * FIELD_WIDTH * FIELD_HEIGHT;
+static constexpr int BLOCK_BATCH_HOLD = PIECE_BLOCK_COUNT;
+static constexpr int BLOCK_BATCH_BLOCKS = BLOCK_BATCH_ACTIVE + BLOCK_BATCH_NEXT + BLOCK_BATCH_FIELD;
 static constexpr int BLOCK_BATCH_INDICES = BLOCK_BATCH_BLOCKS * 6;
 
 void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) {
@@ -53,7 +58,8 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
                     0,
             }
     };
-    shaderPair_init(&ctx->blockMesh.shaders, device, L"resources/shaders/TestVertex.hlsl", L"resources/shaders/TestPixel.hlsl", layoutDesc);
+    shaderPair_init(&ctx->blockMesh.shaders, device, L"resources/shaders/TestVertex.hlsl",
+                    L"resources/shaders/TestPixel.hlsl", layoutDesc);
     ctx->blockMesh.stride = sizeof(BlockVertex);
     ctx->blockMesh.indices = BLOCK_BATCH_INDICES;
 }
@@ -65,16 +71,57 @@ void setBlockVertices(BlockGroup *group, float x, float y) {
     group->vertices[3].position = DirectX::XMFLOAT3(x + 1, y + 1, 0.0f);
 }
 
-void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11DeviceContext *deviceContext) {
-    auto pieceOffset = engine->active.pos;
-    Point boardOffset = {-5, -10};
+static Point getPieceQueueOffset(const PieceType type) {
+    Point additionalOffset;
+    switch (type) {
+        case PieceType_O:
+            additionalOffset = {1, 1};
+            break;
+        default:
+            additionalOffset = {0};
+            break;
+    }
+    return additionalOffset;
+}
 
-    for (int i = 0; i < 4; i++) {
+void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11DeviceContext *deviceContext) {
+    // Active Piece
+    auto pieceOffset = engine->active.pos;
+    Point constexpr fieldOffset = {-5, -10};
+
+    for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
         auto coords = point_addToNew(pieceOffset, engine->active.piece.coords[i]);
-        point_add(&coords, boardOffset);
+        point_add(&coords, fieldOffset);
         setBlockVertices(&batch->activePiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
     }
 
+    // Next Queue
+    Point nextOffset = {6, 8};
+    Point constexpr nextAdvance = {0, -3};
+    
+    for (int i = 0; i < NEXT_QUEUE_LENGTH; i++) {
+        auto piece = engine->nextQueue.pieces[i];
+        auto nextPieceOffset = getPieceQueueOffset(piece.type);
+        for (int j = 0; j < PIECE_BLOCK_COUNT; j++) {
+            auto coords = point_addToNew(nextOffset, piece.coords[j]);
+            point_add(&coords, nextPieceOffset);
+            setBlockVertices(&batch->nextPieces[i][j], static_cast<float>(coords.x), static_cast<float>(coords.y));
+        }
+        point_add(&nextOffset, nextAdvance);
+    }
+    
+    // Field
+    for (int y = 0; y < FIELD_HEIGHT; y++) {
+        for (int x = 0; x < FIELD_WIDTH; x++) {
+            if (engine->field.matrix[y][x].color == BlockColor_NONE) {
+                batch->field[y][x] = {};
+                continue;
+            }
+            auto coords = point_addToNew(fieldOffset, {x, y});
+            setBlockVertices(&batch->field[y][x], static_cast<float>(coords.x), static_cast<float>(coords.y));
+        }
+    }
+    
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     auto r = deviceContext->Map(
             mesh->vertexBuffer,
