@@ -110,6 +110,20 @@ void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11Devic
         point_add(&nextOffset, nextAdvance);
     }
     
+    // Hold Queue
+    Point holdOffset = {-9, 8};
+    auto holdPiece = engine->holdQueue.held;
+    
+    for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
+        if (holdPiece.type == PieceType_NONE) {
+            batch->holdPiece[i] = {};
+            continue;
+        }
+        auto coords = point_addToNew(holdOffset, holdPiece.coords[i]);
+        point_add(&coords, getPieceQueueOffset(holdPiece.type));
+        setBlockVertices(&batch->holdPiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
+    }
+    
     // Field
     for (int y = 0; y < FIELD_HEIGHT; y++) {
         for (int x = 0; x < FIELD_WIDTH; x++) {

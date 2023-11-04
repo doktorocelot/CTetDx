@@ -9,6 +9,7 @@ enum Control {
     Control_HARD_DROP,
     Control_ROTATE_LEFT,
     Control_ROTATE_RIGHT,
+    Control_HOLD,
     Control_RETRY,
     Control_LENGTH,
 };
