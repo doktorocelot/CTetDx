@@ -13,6 +13,8 @@ set(SOURCES
         src/d3d/check-result.cpp
         src/d3d/d3d-render.hpp
         src/d3d/d3d-render.cpp
+        src/die.hpp
+        src/die.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES})

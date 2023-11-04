@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include "window.hpp"
+#include "../die.hpp"
 
 #define WINDOW_TITLE "CTet"
 #define SCREEN_WIDTH  800
@@ -56,7 +57,7 @@ void window_init(Window *window, HINSTANCE instance) {
 
     if (window->window == nullptr) {
         unregisterClassFromWindow(window);
-        exit(-1); // Todo proper error
+        die("Window could not be created.");
     }
 
     renderer_init(&window->renderer, window->window, SCREEN_WIDTH, SCREEN_HEIGHT);
