@@ -81,6 +81,7 @@ void window_loop(Window *window, Engine *engine) {
     controlTracker.keyAssign[static_cast<int>('X')] = Control_ROTATE_RIGHT;
     controlTracker.keyAssign[VK_UP] = Control_HARD_DROP;
     controlTracker.keyAssign[VK_DOWN] = Control_SOFT_DROP;
+    controlTracker.keyAssign[static_cast<int>('R')] = Control_RETRY;
     
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -118,6 +119,8 @@ void window_loop(Window *window, Engine *engine) {
         
         if (keyPressed(&controlTracker, Control_SOFT_DROP)) engine_onSoftDropDown(engine);
         if (keyReleased(&controlTracker, Control_SOFT_DROP)) engine_onSoftDropUp(engine);
+        
+        if (keyPressed(&controlTracker, Control_RETRY)) engine_reset(engine);
 
         lastTime = currentTime;
 
