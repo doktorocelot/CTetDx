@@ -76,6 +76,9 @@ void renderer_drawFrame(Renderer *renderer, Engine *engine, GameRenderingContext
     float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
     renderer->deviceContext->ClearRenderTargetView(renderer->renderTarget, clearColor);
 
+    mesh_use(&context->frameMesh, renderer->deviceContext);
+    mesh_draw(&context->frameMesh, renderer->deviceContext);
+    
     updateBlockBatch(&context->blockBatch, &context->blockMesh, engine, renderer->deviceContext);
     mesh_use(&context->blockMesh, renderer->deviceContext);
     mesh_draw(&context->blockMesh, renderer->deviceContext);

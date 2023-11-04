@@ -14,6 +14,10 @@ struct BlockVertex {
     DirectX::XMFLOAT3 position;
 };
 
+struct FrameVertex {
+    DirectX::XMFLOAT3 position;
+};
+
 struct BlockGroup {
     BlockVertex vertices[PIECE_BLOCK_COUNT];
 };
@@ -37,6 +41,7 @@ struct Mesh {
 struct GameRenderingContext {
     BlockBatch blockBatch;
     Mesh blockMesh;
+    Mesh frameMesh;
 };
 
 void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device);

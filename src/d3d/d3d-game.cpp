@@ -62,6 +62,84 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
                     L"resources/shaders/TestPixel.hlsl", layoutDesc);
     ctx->blockMesh.stride = sizeof(BlockVertex);
     ctx->blockMesh.indices = BLOCK_BATCH_INDICES;
+
+    // Frame Mesh
+
+    const FrameVertex frameVertices[] = {
+            {{-5, -10, 0}},
+            {{-5.25, -10, 0}},
+            {{-5, -10.25, 0}},
+            {{-5.25, -10.25, 0}},
+
+            {{5, -10, 0}},
+            {{5.25, -10, 0}},
+            {{5, -10.25, 0}},
+            {{5.25, -10.25, 0}},
+
+            {{-5, 10, 0}},
+            {{-5.25, 10, 0}},
+            {{-5, 10.25, 0}},
+            {{-5.25, 10.25, 0}},
+
+            {{5, 10, 0}},
+            {{5.25, 10, 0}},
+            {{5, 10.25, 0}},
+            {{5.25, 10.25, 0}},
+    };
+    
+    const UINT frameIndices[] = {
+            3,1,0,
+            3,0,2,
+            2,0,4,
+            2,4,6,
+            6,4,5,
+            6,5,7,
+            4,12,13,
+            4,13,5,
+            12,14,15,
+            12,15,13,
+            8,10,14,
+            8,14,12,
+            9,11,10,
+            9,10,8,
+            1,9,8,
+            1,8,0
+    };
+
+    bufferDesc = {};
+    bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    bufferDesc.ByteWidth = sizeof(frameVertices);
+    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    initData.pSysMem = frameVertices;
+
+    r = device->CreateBuffer(&bufferDesc, &initData, &ctx->frameMesh.vertexBuffer);
+    checkResult(r, "CreateBuffer (Vertex)");
+
+    bufferDesc = {};
+    bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    bufferDesc.ByteWidth = sizeof(frameIndices);
+    bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+    initData.pSysMem = frameIndices;
+    r = device->CreateBuffer(&bufferDesc, &initData, &ctx->frameMesh.indexBuffer);
+    checkResult(r, "CreateBuffer (Index)");
+
+    D3D11_INPUT_ELEMENT_DESC frameLayoutDesc[] = {
+            {
+                    "POSITION",
+                    0,
+                    DXGI_FORMAT_R32G32B32_FLOAT,
+                    0,
+                    0,
+                    D3D11_INPUT_PER_VERTEX_DATA,
+                    0,
+            }
+    };
+    shaderPair_init(&ctx->frameMesh.shaders, device, L"resources/shaders/TestVertex.hlsl",
+                    L"resources/shaders/TestPixel.hlsl", frameLayoutDesc);
+    ctx->frameMesh.stride = sizeof(FrameVertex);
+    ctx->frameMesh.indices = sizeof(frameIndices) / sizeof(UINT);
 }
 
 void setBlockVertices(BlockGroup *group, float x, float y) {
@@ -98,7 +176,7 @@ void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11Devic
     // Next Queue
     Point nextOffset = {6, 8};
     Point constexpr nextAdvance = {0, -3};
-    
+
     for (int i = 0; i < NEXT_QUEUE_LENGTH; i++) {
         auto piece = engine->nextQueue.pieces[i];
         auto nextPieceOffset = getPieceQueueOffset(piece.type);
@@ -109,11 +187,11 @@ void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11Devic
         }
         point_add(&nextOffset, nextAdvance);
     }
-    
+
     // Hold Queue
     Point holdOffset = {-9, 8};
     auto holdPiece = engine->holdQueue.held;
-    
+
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
         if (holdPiece.type == PieceType_NONE) {
             batch->holdPiece[i] = {};
@@ -123,7 +201,7 @@ void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11Devic
         point_add(&coords, getPieceQueueOffset(holdPiece.type));
         setBlockVertices(&batch->holdPiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
     }
-    
+
     // Field
     for (int y = 0; y < FIELD_HEIGHT; y++) {
         for (int x = 0; x < FIELD_WIDTH; x++) {
@@ -135,7 +213,7 @@ void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11Devic
             setBlockVertices(&batch->field[y][x], static_cast<float>(coords.x), static_cast<float>(coords.y));
         }
     }
-    
+
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     auto r = deviceContext->Map(
             mesh->vertexBuffer,
