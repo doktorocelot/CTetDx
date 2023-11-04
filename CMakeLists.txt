@@ -19,6 +19,8 @@ set(SOURCES
         src/d3d/d3d-game.cpp
         src/d3d/shader-pair.hpp
         src/d3d/shader-pair.cpp
+        src/control/control.hpp
+        src/control/control.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES})

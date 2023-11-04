@@ -3,6 +3,7 @@
 #include "window.hpp"
 #include "../die.hpp"
 #include "../d3d/d3d-game.hpp"
+#include "../control/control.hpp"
 
 #define WINDOW_TITLE "CTet"
 #define SCREEN_WIDTH  720
@@ -73,6 +74,14 @@ void window_loop(Window *window, Engine *engine) {
     GameRenderingContext ctx{};
     gameRenderingContext_init(&ctx, window->renderer.device);
     
+    ControlTracker controlTracker{};
+    controlTracker.keyAssign[VK_LEFT] = Control_SHIFT_LEFT;
+    controlTracker.keyAssign[VK_RIGHT] = Control_SHIFT_RIGHT;
+    controlTracker.keyAssign[static_cast<int>('Z')] = Control_ROTATE_LEFT;
+    controlTracker.keyAssign[static_cast<int>('X')] = Control_ROTATE_RIGHT;
+    controlTracker.keyAssign[VK_UP] = Control_HARD_DROP;
+    controlTracker.keyAssign[VK_DOWN] = Control_SOFT_DROP;
+    
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
@@ -82,7 +91,7 @@ void window_loop(Window *window, Engine *engine) {
                 return;
             }
         }
-        
+        controlTracker_updateCurrent(&controlTracker);
         short state = GetAsyncKeyState('Q');
         
         if (state & 0x8000) {
@@ -95,11 +104,27 @@ void window_loop(Window *window, Engine *engine) {
         
         engine_tick(engine, deltaTime * 1000);
         
+        if (keyPressed(&controlTracker, Control_SHIFT_LEFT)) engine_onShiftLeftDown(engine); 
+        if (keyReleased(&controlTracker, Control_SHIFT_LEFT)) engine_onShiftLeftUp(engine); 
+        
+        if (keyPressed(&controlTracker, Control_SHIFT_RIGHT)) engine_onShiftRightDown(engine); 
+        if (keyReleased(&controlTracker, Control_SHIFT_RIGHT)) engine_onShiftRightUp(engine); 
+        
+        if (keyPressed(&controlTracker, Control_ROTATE_LEFT)) engine_onRotateLeft(engine); 
+        if (keyPressed(&controlTracker, Control_ROTATE_RIGHT)) engine_onRotateRight(engine);
+
+        if (keyPressed(&controlTracker, Control_HARD_DROP)) engine_onHardDrop(engine);
+        
+        if (keyPressed(&controlTracker, Control_SOFT_DROP)) engine_onSoftDropDown(engine);
+        if (keyReleased(&controlTracker, Control_SOFT_DROP)) engine_onSoftDropUp(engine);
+
         lastTime = currentTime;
+
+        controlTracker_copyCurrentToPrev(&controlTracker);
 
         renderer_drawFrame(&window->renderer, engine, &ctx);
     }
-
+    
     gameRenderingContext_cleanup(&ctx);
 }
 
