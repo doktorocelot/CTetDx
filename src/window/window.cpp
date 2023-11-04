@@ -5,8 +5,8 @@
 #include "../d3d/d3d-game.hpp"
 
 #define WINDOW_TITLE "CTet"
-#define SCREEN_WIDTH  800
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH  720
+#define SCREEN_HEIGHT 720
 
 LRESULT CALLBACK windowProcedure(HWND window, UINT msg, WPARAM wparam, LPARAM lparam) {
     switch (msg) {

@@ -67,9 +67,11 @@ void setBlockVertices(BlockGroup *group, float x, float y) {
 
 void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11DeviceContext *deviceContext) {
     auto pieceOffset = engine->active.pos;
+    Point boardOffset = {-5, -10};
 
     for (int i = 0; i < 4; i++) {
         auto coords = point_addToNew(pieceOffset, engine->active.piece.coords[i]);
+        point_add(&coords, boardOffset);
         setBlockVertices(&batch->activePiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
     }
 

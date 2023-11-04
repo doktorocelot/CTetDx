@@ -8,6 +8,6 @@ struct VertexOutput {
 
 VertexOutput main(VertexInput input) {
     VertexOutput output;
-    output.Position = float4(input.Position / 40.0f, 1.0f);
+    output.Position = float4(input.Position / 12.0f, 1.0f);
     return output;
 }
