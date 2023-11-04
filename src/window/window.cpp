@@ -88,6 +88,7 @@ void window_loop(Window *window, Engine *engine) {
             DispatchMessage(&msg);
 
             if (msg.message == WM_QUIT) {
+                gameRenderingContext_cleanup(&ctx);
                 return;
             }
         }
@@ -125,7 +126,6 @@ void window_loop(Window *window, Engine *engine) {
         renderer_drawFrame(&window->renderer, engine, &ctx);
     }
     
-    gameRenderingContext_cleanup(&ctx);
 }
 
 void window_show(HWND window) {
