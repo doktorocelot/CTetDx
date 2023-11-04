@@ -18,3 +18,26 @@ set(SOURCES
 add_executable(CTetDx WIN32 ${SOURCES})
 
 target_link_libraries(CTetDx PUBLIC d3d11.lib dxguid.lib d3dcompiler.lib)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    # Configuration for Debug mode
+    add_definitions(-DDEBUG)
+    message("Building in Debug mode")
+    add_custom_command(
+            TARGET CTetDx
+            PRE_BUILD COMMAND ${CMAKE_COMMAND} -E
+            create_symlink ${CMAKE_SOURCE_DIR}/resources ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
+    
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    # Configuration for Release mode
+    message("Building in Release mode")
+    add_custom_target(CopyResources
+            COMMAND ${CMAKE_COMMAND} -E remove_directory 
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources
+            
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/resources
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources
+    )
+    add_dependencies(CTetDx CopyResources)
+endif()
