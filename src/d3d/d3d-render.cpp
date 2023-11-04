@@ -72,9 +72,13 @@ void renderer_cleanup(Renderer *renderer) {
     renderer->deviceContext->Release();
 }
 
-void renderer_drawFrame(Renderer *renderer) {
-    float clearColor[] = {0.0f, 1.0f, 1.0f, 1.0f};
+void renderer_drawFrame(Renderer *renderer, Engine *engine, GameRenderingContext *context) {
+    float clearColor[] = {0.0f, 0.2f, 0.2f, 1.0f};
     renderer->deviceContext->ClearRenderTargetView(renderer->renderTarget, clearColor);
+
+    updateBlockBatch(&context->blockBatch, &context->blockMesh, engine, renderer->deviceContext);
+    mesh_use(&context->blockMesh, renderer->deviceContext);
+    mesh_draw(&context->blockMesh, renderer->deviceContext);
     
     renderer->swapChain->Present(0, 0);
 }

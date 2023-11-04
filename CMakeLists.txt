@@ -15,10 +15,16 @@ set(SOURCES
         src/d3d/d3d-render.cpp
         src/die.hpp
         src/die.cpp
+        src/d3d/d3d-game.hpp
+        src/d3d/d3d-game.cpp
+        src/d3d/shader-pair.hpp
+        src/d3d/shader-pair.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES})
+add_subdirectory(extern/ctet)
 
+target_link_libraries(CTetDx PUBLIC CTet)
 target_link_libraries(CTetDx PUBLIC d3d11.lib dxguid.lib d3dcompiler.lib)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")

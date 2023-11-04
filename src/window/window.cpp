@@ -1,6 +1,8 @@
 #include <cstdlib>
+#include <sstream>
 #include "window.hpp"
 #include "../die.hpp"
+#include "../d3d/d3d-game.hpp"
 
 #define WINDOW_TITLE "CTet"
 #define SCREEN_WIDTH  800
@@ -15,9 +17,6 @@ LRESULT CALLBACK windowProcedure(HWND window, UINT msg, WPARAM wparam, LPARAM lp
             PostQuitMessage(0);
             break;
         case WM_KEYDOWN:
-            if (wparam == 'q' || wparam == 'Q') {
-                PostMessage(window, WM_CLOSE, 0, 0);
-            }
             break;
         case WM_MOUSEMOVE:
             SetCursor(LoadCursor(nullptr, IDC_ARROW));
@@ -63,8 +62,17 @@ void window_init(Window *window, HINSTANCE instance) {
     renderer_init(&window->renderer, window->window, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-void window_loop(Window *window) {
+void window_loop(Window *window, Engine *engine) {
     MSG msg;
+    LARGE_INTEGER frequency, lastTime, currentTime;
+    float deltaTime;
+
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&lastTime);
+    
+    GameRenderingContext ctx{};
+    gameRenderingContext_init(&ctx, window->renderer.device);
+    
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
@@ -74,9 +82,25 @@ void window_loop(Window *window) {
                 return;
             }
         }
+        
+        short state = GetAsyncKeyState('Q');
+        
+        if (state & 0x8000) {
+            PostMessage(window->window, WM_CLOSE, 0, 0);
+        }
 
-        renderer_drawFrame(&window->renderer);
+        QueryPerformanceCounter(&currentTime);
+        
+        deltaTime = (float) (currentTime.QuadPart - lastTime.QuadPart) / (float) frequency.QuadPart;
+        
+        engine_tick(engine, deltaTime * 1000);
+        
+        lastTime = currentTime;
+
+        renderer_drawFrame(&window->renderer, engine, &ctx);
     }
+
+    gameRenderingContext_cleanup(&ctx);
 }
 
 void window_show(HWND window) {

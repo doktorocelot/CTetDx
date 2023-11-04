@@ -2,6 +2,9 @@
 
 #include <windows.h>
 #include "../d3d/d3d-render.hpp"
+extern "C" {
+#include "ctet/engine.h"
+}
 
 struct Window {
     HINSTANCE instance;
@@ -12,7 +15,7 @@ struct Window {
 
 void window_init(Window *window, HINSTANCE instance);
 
-void window_loop(Window *window);
+void window_loop(Window *window, Engine *engine);
 
 void window_show(HWND window);
 
