@@ -18,6 +18,9 @@ LRESULT CALLBACK windowProcedure(HWND window, UINT msg, WPARAM wparam, LPARAM lp
                 PostMessage(window, WM_CLOSE, 0, 0);
             }
             break;
+        case WM_MOUSEMOVE:
+            SetCursor(LoadCursor(nullptr, IDC_ARROW));
+            break;
         default:
             return DefWindowProc(window, msg, wparam, lparam);
     }
