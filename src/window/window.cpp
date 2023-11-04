@@ -13,6 +13,11 @@ LRESULT CALLBACK windowProcedure(HWND window, UINT msg, WPARAM wparam, LPARAM lp
         case WM_DESTROY:
             PostQuitMessage(0);
             break;
+        case WM_KEYDOWN:
+            if (wparam == 'q' || wparam == 'Q') {
+                PostMessage(window, WM_CLOSE, 0, 0);
+            }
+            break;
         default:
             return DefWindowProc(window, msg, wparam, lparam);
     }
