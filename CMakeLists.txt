@@ -7,6 +7,8 @@ set(SOURCES
         src/main.cpp
         src/window/window.hpp
         src/window/window.cpp
+        src/d3d/check-result.hpp
+        src/d3d/check-result.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES})
