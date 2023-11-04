@@ -9,6 +9,10 @@ set(SOURCES
         src/window/window.cpp
         src/d3d/check-result.hpp
         src/d3d/check-result.cpp
+        src/d3d/d3d-render.hpp
+        src/d3d/d3d-render.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES})
+
+target_link_libraries(CTetDx PUBLIC d3d11.lib dxguid.lib d3dcompiler.lib)

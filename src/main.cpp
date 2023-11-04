@@ -5,6 +5,6 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdStr, i
     Window window{};
     window_init(&window, instance);
     window_show(window.window);
-    window_loop(window.window);
+    window_loop(&window);
     window_cleanup(&window);
 }

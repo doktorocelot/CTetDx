@@ -27,8 +27,8 @@ LRESULT CALLBACK windowProcedure(HWND window, UINT msg, WPARAM wparam, LPARAM lp
     return 0;
 }
 
-static void unregisterClassFromWindow(Window *window) { 
-    UnregisterClass(window->className, window->instance); 
+static void unregisterClassFromWindow(Window *window) {
+    UnregisterClass(window->className, window->instance);
 }
 
 void window_init(Window *window, HINSTANCE instance) {
@@ -58,20 +58,24 @@ void window_init(Window *window, HINSTANCE instance) {
         unregisterClassFromWindow(window);
         exit(-1); // Todo proper error
     }
+
+    renderer_init(&window->renderer, window->window, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-void window_loop(HWND window) {
+void window_loop(Window *window) {
     MSG msg;
-    BOOL messageReturn;
-    while ((messageReturn = GetMessage(&msg, window, 0, 0)) != 0) {
-        if (messageReturn == -1) {
-            exit(-1); // Todo proper error
-        } else {
+    while (true) {
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
+
+            if (msg.message == WM_QUIT) {
+                return;
+            }
         }
+
+        renderer_drawFrame(&window->renderer);
     }
-    
 }
 
 void window_show(HWND window) {
@@ -80,6 +84,7 @@ void window_show(HWND window) {
 }
 
 void window_cleanup(Window *window) {
+    renderer_cleanup(&window->renderer);
     unregisterClassFromWindow(window);
     DestroyWindow(window->window);
 }
