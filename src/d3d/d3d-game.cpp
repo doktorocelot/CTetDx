@@ -174,7 +174,7 @@ void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11Devic
     }
 
     // Next Queue
-    Point nextOffset = {6, 8};
+    Point nextOffset = {6, 7};
     Point constexpr nextAdvance = {0, -3};
 
     for (int i = 0; i < NEXT_QUEUE_LENGTH; i++) {
@@ -189,7 +189,7 @@ void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11Devic
     }
 
     // Hold Queue
-    Point holdOffset = {-9, 8};
+    Point holdOffset = {-9, 7};
     auto holdPiece = engine->holdQueue.held;
 
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
