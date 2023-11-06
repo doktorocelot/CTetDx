@@ -162,18 +162,19 @@ static Point getPieceQueueOffset(const PieceType type) {
     return additionalOffset;
 }
 
-void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11DeviceContext *deviceContext) {
-    // Active Piece
+static Point constexpr FIELD_OFFSET = {-5, -10};
+
+void drawActivePiece(Engine *engine, BlockBatch *batch) {
     auto pieceOffset = engine->active.pos;
-    Point constexpr fieldOffset = {-5, -10};
 
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
         auto coords = point_addToNew(pieceOffset, engine->active.piece.coords[i]);
-        point_add(&coords, fieldOffset);
+        point_add(&coords, FIELD_OFFSET);
         setBlockVertices(&batch->activePiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
     }
+}
 
-    // Next Queue
+void drawNextQueue(Engine *engine, BlockBatch *batch) {
     Point nextOffset = {6, 7};
     Point constexpr nextAdvance = {0, -3};
 
@@ -187,8 +188,9 @@ void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11Devic
         }
         point_add(&nextOffset, nextAdvance);
     }
+}
 
-    // Hold Queue
+void drawHoldQueue(Engine *engine, BlockBatch *batch) {
     Point holdOffset = {-9, 7};
     auto holdPiece = engine->holdQueue.held;
 
@@ -201,18 +203,34 @@ void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11Devic
         point_add(&coords, getPieceQueueOffset(holdPiece.type));
         setBlockVertices(&batch->holdPiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
     }
+}
 
-    // Field
+void drawField(Engine *engine, BlockBatch *batch) {
     for (int y = 0; y < FIELD_HEIGHT; y++) {
         for (int x = 0; x < FIELD_WIDTH; x++) {
             if (engine->field.matrix[y][x].color == BlockColor_NONE) {
                 batch->field[y][x] = {};
                 continue;
             }
-            auto coords = point_addToNew(fieldOffset, {x, y});
+            auto coords = point_addToNew(FIELD_OFFSET, {x, y});
             setBlockVertices(&batch->field[y][x], static_cast<float>(coords.x), static_cast<float>(coords.y));
         }
     }
+}
+
+void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11DeviceContext *deviceContext) {
+    // Active Piece
+
+    drawActivePiece(engine, batch);
+    // Next Queue
+
+    drawNextQueue(engine, batch);
+    // Hold Queue
+
+    drawHoldQueue(engine, batch);
+    // Field
+
+    drawField(engine, batch);
 
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     auto r = deviceContext->Map(
