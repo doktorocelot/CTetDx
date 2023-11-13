@@ -13,6 +13,5 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdStr, i
     engine_destroy(engine);
     window_cleanup(&window);
     
-    
     return 0;
 }

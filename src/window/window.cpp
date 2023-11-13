@@ -71,7 +71,7 @@ void window_loop(Window *window, Engine *engine) {
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&lastTime);
     
-    GameRenderingContext ctx{};
+    GameRenderingContext ctx = {};
     gameRenderingContext_init(&ctx, window->renderer.device);
     
     ControlTracker controlTracker{};

@@ -33,7 +33,7 @@ static HRESULT compileShader(
 }
 
 void shaderPair_init(ShaderPair *pair, ID3D11Device *device, LPCWSTR vertexPath, LPCWSTR pixelPath,
-                     D3D11_INPUT_ELEMENT_DESC *layoutDesc) {
+                     D3D11_INPUT_ELEMENT_DESC *layoutDesc, int layoutElements) {
     ID3DBlob *vertexShaderBlob = nullptr;
     ID3DBlob *pixelShaderBlob = nullptr;
     compileShader(vertexPath, "vs_5_0", &vertexShaderBlob);
@@ -57,7 +57,7 @@ void shaderPair_init(ShaderPair *pair, ID3D11Device *device, LPCWSTR vertexPath,
     
     r = device->CreateInputLayout(
             layoutDesc,
-            1,
+            layoutElements,
             vertexShaderBlob->GetBufferPointer(),
             vertexShaderBlob->GetBufferSize(),
             &pair->inputLayout

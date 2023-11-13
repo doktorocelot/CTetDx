@@ -1,6 +1,6 @@
 #include "d3d-game.hpp"
 #include "check-result.hpp"
-
+#include <array>
 
 static constexpr int BLOCK_BATCH_ACTIVE = PIECE_BLOCK_COUNT;
 static constexpr int BLOCK_BATCH_NEXT = PIECE_BLOCK_COUNT * NEXT_QUEUE_LENGTH;
@@ -56,54 +56,63 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
                     0,
                     D3D11_INPUT_PER_VERTEX_DATA,
                     0,
+            },
+            {
+                    "TEXCOORD",
+                    0,
+                    DXGI_FORMAT_R32_FLOAT,
+                    0,
+                    sizeof(float) * 3,
+                    D3D11_INPUT_PER_VERTEX_DATA,
+                    0,
             }
     };
-    shaderPair_init(&ctx->blockMesh.shaders, device, L"resources/shaders/TestVertex.hlsl",
-                    L"resources/shaders/TestPixel.hlsl", layoutDesc);
+    shaderPair_init(&ctx->blockMesh.shaders, device, L"resources/shaders/BlockVertex.hlsl",
+                    L"resources/shaders/BlockPixel.hlsl", layoutDesc, 2);
     ctx->blockMesh.stride = sizeof(BlockVertex);
     ctx->blockMesh.indices = BLOCK_BATCH_INDICES;
 
     // Frame Mesh
 
     const FrameVertex frameVertices[] = {
-            {{-5, -10, 0}},
-            {{-5.25, -10, 0}},
-            {{-5, -10.25, 0}},
+            {{-5,    -10,    0}},
+            {{-5.25, -10,    0}},
+            {{-5,    -10.25, 0}},
             {{-5.25, -10.25, 0}},
 
-            {{5, -10, 0}},
-            {{5.25, -10, 0}},
-            {{5, -10.25, 0}},
-            {{5.25, -10.25, 0}},
+            {{5,     -10,    0}},
+            {{5.25,  -10,    0}},
+            {{5,     -10.25, 0}},
+            {{5.25,  -10.25, 0}},
 
-            {{-5, 10, 0}},
-            {{-5.25, 10, 0}},
-            {{-5, 10.25, 0}},
-            {{-5.25, 10.25, 0}},
+            {{-5,    10,     0}},
+            {{-5.25, 10,     0}},
+            {{-5,    10.25,  0}},
+            {{-5.25, 10.25,  0}},
 
-            {{5, 10, 0}},
-            {{5.25, 10, 0}},
-            {{5, 10.25, 0}},
-            {{5.25, 10.25, 0}},
+            {{5,     10,     0}},
+            {{5.25,  10,     0}},
+            {{5,     10.25,  0}},
+            {{5.25,  10.25,  0}},
     };
-    
+
     const UINT frameIndices[] = {
-            3,1,0,
-            3,0,2,
-            2,0,4,
-            2,4,6,
-            6,4,5,
-            6,5,7,
-            4,12,13,
-            4,13,5,
-            12,14,15,
-            12,15,13,
-            8,10,14,
-            8,14,12,
-            9,11,10,
-            9,10,8,
-            1,9,8,
-            1,8,0
+            3, 1, 0,
+            3, 0, 2,
+            2, 0, 4,
+            2, 4, 6,
+            6, 4, 5,
+            6, 5, 7,
+            4, 12, 13,
+            4, 13, 5,
+            12, 14, 15,
+            12, 15, 13,
+            8, 10, 14,
+            8, 14, 12,
+            9, 11, 10,
+            9, 10, 8,
+            1, 9, 8,
+            1, 8, 0
     };
 
     bufferDesc = {};
@@ -136,8 +145,10 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
                     0,
             }
     };
-    shaderPair_init(&ctx->frameMesh.shaders, device, L"resources/shaders/TestVertex.hlsl",
-                    L"resources/shaders/TestPixel.hlsl", frameLayoutDesc);
+    shaderPair_init(&ctx->frameMesh.shaders, device,
+                    L"resources/shaders/FrameVertex.hlsl",
+                    L"resources/shaders/FramePixel.hlsl",
+                    frameLayoutDesc, 1);
     ctx->frameMesh.stride = sizeof(FrameVertex);
     ctx->frameMesh.indices = sizeof(frameIndices) / sizeof(UINT);
 }
@@ -147,6 +158,13 @@ void setBlockVertices(BlockGroup *group, float x, float y) {
     group->vertices[1].position = DirectX::XMFLOAT3(x + 1, y, 0.0f);
     group->vertices[2].position = DirectX::XMFLOAT3(x, y + 1, 0.0f);
     group->vertices[3].position = DirectX::XMFLOAT3(x + 1, y + 1, 0.0f);
+}
+
+void setBlockBrightness(BlockGroup *group, float brightness) {
+    group->vertices[0].brightness = brightness;
+    group->vertices[1].brightness = brightness;
+    group->vertices[2].brightness = brightness;
+    group->vertices[3].brightness = brightness;
 }
 
 static Point getPieceQueueOffset(const PieceType type) {
@@ -171,6 +189,7 @@ void drawActivePiece(Engine *engine, BlockBatch *batch) {
         Point coords = point_addToNew(pieceOffset, engine->active.piece.coords[i]);
         point_add(&coords, FIELD_OFFSET);
         setBlockVertices(&batch->activePiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
+        setBlockBrightness(&batch->activePiece[i], 1);
     }
 }
 
@@ -185,6 +204,7 @@ void drawNextQueue(Engine *engine, BlockBatch *batch) {
             auto coords = point_addToNew(nextOffset, piece.coords[j]);
             point_add(&coords, nextPieceOffset);
             setBlockVertices(&batch->nextPieces[i][j], static_cast<float>(coords.x), static_cast<float>(coords.y));
+            setBlockBrightness(&batch->nextPieces[i][j], 1);
         }
         point_add(&nextOffset, nextAdvance);
     }
@@ -202,6 +222,7 @@ void drawHoldQueue(Engine *engine, BlockBatch *batch) {
         auto coords = point_addToNew(holdOffset, holdPiece.coords[i]);
         point_add(&coords, getPieceQueueOffset(holdPiece.type));
         setBlockVertices(&batch->holdPiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
+        setBlockBrightness(&batch->holdPiece[i], 1);
     }
 }
 
@@ -214,6 +235,7 @@ void drawField(Engine *engine, BlockBatch *batch) {
             }
             auto coords = point_addToNew(FIELD_OFFSET, {x, y});
             setBlockVertices(&batch->field[y][x], static_cast<float>(coords.x), static_cast<float>(coords.y));
+            setBlockBrightness(&batch->field[y][x], 0.8f);
         }
     }
 }

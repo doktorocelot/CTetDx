@@ -9,7 +9,7 @@ struct ShaderPair {
 };
 
 void shaderPair_init(ShaderPair *pair, ID3D11Device *device, LPCWSTR vertexPath, LPCWSTR pixelPath,
-                     D3D11_INPUT_ELEMENT_DESC *layoutDesc);
+                     D3D11_INPUT_ELEMENT_DESC *layoutDesc, int layoutElements);
 
 void shaderPair_cleanup(ShaderPair *pair);
 
