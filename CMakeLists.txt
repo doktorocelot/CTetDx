@@ -22,6 +22,7 @@ set(SOURCES
         src/control/control.hpp
         src/control/control.cpp
         src/d3d/block-batch.hpp
+        src/d3d/block-batch.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES})

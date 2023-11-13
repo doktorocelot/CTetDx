@@ -17,8 +17,17 @@ struct BlockGroup {
 };
 
 struct BlockBatch {
+    BlockGroup field[FIELD_HEIGHT][FIELD_WIDTH];
+    BlockGroup ghostPiece[PIECE_BLOCK_COUNT];
     BlockGroup activePiece[PIECE_BLOCK_COUNT];
     BlockGroup nextPieces[NEXT_QUEUE_LENGTH][PIECE_BLOCK_COUNT];
     BlockGroup holdPiece[PIECE_BLOCK_COUNT];
-    BlockGroup field[FIELD_HEIGHT][FIELD_WIDTH];
 };
+
+void blockBatch_setupActive(Engine *engine, BlockBatch *batch);
+
+void blockBatch_setupNext(Engine *engine, BlockBatch *batch);
+
+void blockBatch_setupHold(Engine *engine, BlockBatch *batch);
+
+void blockBatch_setupField(Engine *engine, BlockBatch *batch);
