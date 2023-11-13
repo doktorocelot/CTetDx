@@ -165,10 +165,10 @@ static Point getPieceQueueOffset(const PieceType type) {
 static Point constexpr FIELD_OFFSET = {-5, -10};
 
 void drawActivePiece(Engine *engine, BlockBatch *batch) {
-    auto pieceOffset = engine->active.pos;
+    Point pieceOffset = engine->active.pos;
 
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
-        auto coords = point_addToNew(pieceOffset, engine->active.piece.coords[i]);
+        Point coords = point_addToNew(pieceOffset, engine->active.piece.coords[i]);
         point_add(&coords, FIELD_OFFSET);
         setBlockVertices(&batch->activePiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
     }
@@ -192,7 +192,7 @@ void drawNextQueue(Engine *engine, BlockBatch *batch) {
 
 void drawHoldQueue(Engine *engine, BlockBatch *batch) {
     Point holdOffset = {-9, 7};
-    auto holdPiece = engine->holdQueue.held;
+    Piece holdPiece = engine->holdQueue.held;
 
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
         if (holdPiece.type == PieceType_NONE) {
