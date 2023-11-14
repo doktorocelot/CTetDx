@@ -5,10 +5,6 @@
 #include "shader-pair.hpp"
 #include "block-batch.hpp"
 
-extern "C" {
-#include <ctet/engine.h>
-}
-
 struct FrameVertex {
     DirectX::XMFLOAT3 position;
 };
@@ -31,7 +27,7 @@ struct GameRenderingContext {
 void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device);
 void gameRenderingContext_cleanup(GameRenderingContext *ctx);
 
-void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11DeviceContext *deviceContext);
+void updateBlockBatch(BlockBatch *batch, Mesh *mesh, CTetEngine *engine, ID3D11DeviceContext *deviceContext);
 
 void mesh_use(Mesh *mesh, ID3D11DeviceContext *deviceContext);
 void mesh_draw(Mesh *mesh, ID3D11DeviceContext *deviceContext);

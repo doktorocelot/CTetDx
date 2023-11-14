@@ -18,7 +18,7 @@ void setBlockVertices(BlockGroup *group, float x, float y) {
     group->vertices[3].position = DirectX::XMFLOAT3(x + 1, y + 1, 0.0f);
 }
 
-void setBlockColor(BlockGroup *group, BlockColor color) {
+void setBlockColor(BlockGroup *group, CTetBlockColor color) {
     auto colorVal = colors[color];
     group->vertices[0].color = colorVal;
     group->vertices[1].color = colorVal;
@@ -40,10 +40,10 @@ void setBlockBrightness(BlockGroup *group, float brightness) {
     group->vertices[3].brightness = brightness;
 }
 
-static Point getPieceQueueOffset(const PieceType type) {
-    Point additionalOffset;
+static CTetPoint getPieceQueueOffset(const CTetPieceType type) {
+    CTetPoint additionalOffset;
     switch (type) {
-        case PieceType_O:
+        case CTetPieceType_O:
             additionalOffset = {1, 1};
             break;
         default:
@@ -53,74 +53,76 @@ static Point getPieceQueueOffset(const PieceType type) {
     return additionalOffset;
 }
 
-static Point constexpr GAME_FIELD_OFFSET = {-5, -10};
+static CTetPoint constexpr GAME_FIELD_OFFSET = {-5, -10};
 
-void blockBatch_setupActive(Engine *engine, BlockBatch *batch) {
-    const Point pieceOffset = engine->active.pos;
-    const Point ghostPieceOffset = {0, -activePiece_getDistanceToGround(&engine->active)};
+void blockBatch_setupActive(CTetEngine *engine, BlockBatch *batch) {
+    const CTetPoint pieceOffset = ctEngine_getActivePiecePos(engine);
+    const CTetPoint ghostPieceOffset = ctEngine_getGhostOffset(engine);
+    const CTetPiece *piece = ctEngine_getActivePiece(engine);
 
-    // Ghost Piece
+    // Ghost CTetPiece
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
-        Point coords = point_addToNew(pieceOffset, engine->active.piece.coords[i]);
-        point_add(&coords, ghostPieceOffset);
+        CTetPoint coords = ctPoint_addToNew(pieceOffset, piece->coords[i]);
+        ctPoint_add(&coords, ghostPieceOffset);
 
-        setBlockColor(&batch->field[coords.y][coords.x], engine->active.piece.blocks[i].color);
+        setBlockColor(&batch->field[coords.y][coords.x], piece->blocks[i].color);
         setBlockEnabled(&batch->field[coords.y][coords.x], true);
         setBlockBrightness(&batch->field[coords.y][coords.x], 0.4f);
     }
-    // Active Piece
+    // Active CTetPiece
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
-        Point coords = point_addToNew(pieceOffset, engine->active.piece.coords[i]);
+        CTetPoint coords = ctPoint_addToNew(pieceOffset, piece->coords[i]);
 
-        setBlockColor(&batch->field[coords.y][coords.x], engine->active.piece.blocks[i].color);
+        setBlockColor(&batch->field[coords.y][coords.x], piece->blocks[i].color);
         setBlockEnabled(&batch->field[coords.y][coords.x], true);
         constexpr float ratio = 0.7f;
-        float brightness = 1 - (1 - lockdown_lockDelayRemaining(&engine->lockdown)) * ratio;
+        float brightness = 1 - (1 - ctEngine_getLockDelayRemainingPercentage(engine)) * ratio;
         setBlockBrightness(&batch->field[coords.y][coords.x], brightness);
     }
 }
 
-void blockBatch_setupNext(Engine *engine, BlockBatch *batch) {
-    Point nextOffset = {6, 7};
-    Point constexpr nextAdvance = {0, -3};
+void blockBatch_setupNext(CTetEngine *engine, BlockBatch *batch) {
+    CTetPoint nextOffset = {6, 7};
+    CTetPoint constexpr nextAdvance = {0, -3};
+    const CTetPiece *nextPieces = ctEngine_getNextPieces(engine);
 
-    for (int i = 0; i < NEXT_QUEUE_LENGTH; i++) {
-        auto piece = engine->nextQueue.pieces[i];
+    for (int i = 0; i < CT_NEXT_QUEUE_MAX_LENGTH; i++) {
+        auto piece = nextPieces[i];
         auto nextPieceOffset = getPieceQueueOffset(piece.type);
         for (int j = 0; j < PIECE_BLOCK_COUNT; j++) {
-            auto coords = point_addToNew(nextOffset, piece.coords[j]);
-            point_add(&coords, nextPieceOffset);
+            auto coords = ctPoint_addToNew(nextOffset, piece.coords[j]);
+            ctPoint_add(&coords, nextPieceOffset);
             setBlockVertices(&batch->nextPieces[i][j], static_cast<float>(coords.x), static_cast<float>(coords.y));
             setBlockBrightness(&batch->nextPieces[i][j], 1);
             setBlockColor(&batch->nextPieces[i][j], piece.blocks[j].color);
         }
-        point_add(&nextOffset, nextAdvance);
+        ctPoint_add(&nextOffset, nextAdvance);
     }
 }
 
-void blockBatch_setupHold(Engine *engine, BlockBatch *batch) {
-    Point holdOffset = {-9, 7};
-    Piece holdPiece = engine->holdQueue.held;
+void blockBatch_setupHold(CTetEngine *engine, BlockBatch *batch) {
+    CTetPoint holdOffset = {-9, 7};
+    CTetPiece heldPiece = *ctEngine_getHeldPiece(engine);
 
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
-        if (holdPiece.type == PieceType_NONE) {
+        if (heldPiece.type == CTetPieceType_NONE) {
             setBlockEnabled(&batch->holdPiece[i], false);
             continue;
         }
-        auto coords = point_addToNew(holdOffset, holdPiece.coords[i]);
-        point_add(&coords, getPieceQueueOffset(holdPiece.type));
+        auto coords = ctPoint_addToNew(holdOffset, heldPiece.coords[i]);
+        ctPoint_add(&coords, getPieceQueueOffset(heldPiece.type));
         setBlockVertices(&batch->holdPiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
         setBlockBrightness(&batch->holdPiece[i], 1);
         setBlockEnabled(&batch->holdPiece[i], true);
-        setBlockColor(&batch->holdPiece[i], holdPiece.blocks[i].color);
+        setBlockColor(&batch->holdPiece[i], heldPiece.blocks[i].color);
     }
 }
 
-void blockBatch_setupField(Engine *engine, BlockBatch *batch) {
-    for (int y = 0; y < FIELD_HEIGHT; y++) {
-        for (int x = 0; x < FIELD_WIDTH; x++) {
-            BlockColor color = engine->field.matrix[y][x].color;
-            if (color == BlockColor_NONE) {
+void blockBatch_setupField(CTetEngine *engine, BlockBatch *batch) {
+    for (int y = 0; y < CT_TOTAL_FIELD_HEIGHT; y++) {
+        for (int x = 0; x < CT_FIELD_WIDTH; x++) {
+            CTetBlockColor color = ctEngine_getBlockAtFieldLocation(engine, {x, y})->color;
+            if (color == CTetBlockColor_NONE) {
                 setBlockEnabled(&batch->field[y][x], false);
                 continue;
             }
@@ -132,16 +134,16 @@ void blockBatch_setupField(Engine *engine, BlockBatch *batch) {
 }
 
 void blockBatch_initFieldPositions(BlockBatch *batch) {
-    for (int y = 0; y < FIELD_HEIGHT; y++) {
-        for (int x = 0; x < FIELD_WIDTH; x++) {
-            auto coords = point_addToNew(GAME_FIELD_OFFSET, {x, y});
+    for (int y = 0; y < CT_TOTAL_FIELD_HEIGHT; y++) {
+        for (int x = 0; x < CT_FIELD_WIDTH; x++) {
+            auto coords = ctPoint_addToNew(GAME_FIELD_OFFSET, {x, y});
             setBlockVertices(&batch->field[y][x], static_cast<float>(coords.x), static_cast<float>(coords.y));
         }
     }
 }
 
 void blockBatch_initNextEnabled(BlockBatch *batch) {
-    for (int i = 0; i < NEXT_QUEUE_LENGTH; i++) {
+    for (int i = 0; i < CT_NEXT_QUEUE_MAX_LENGTH; i++) {
         for (int j = 0; j < PIECE_BLOCK_COUNT; j++) {
             setBlockEnabled(&batch->nextPieces[i][j], true);
         }

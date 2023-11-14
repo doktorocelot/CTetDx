@@ -1,9 +1,7 @@
 #pragma once
 
 #include <DirectXMath.h>
-extern "C"{
-#include <ctet/engine.h>
-}
+#include <ctet/ctet.h>
 
 static constexpr int PIECE_BLOCK_COUNT = 4;
 
@@ -19,18 +17,18 @@ struct BlockGroup {
 };
 
 struct BlockBatch {
-    BlockGroup field[FIELD_HEIGHT][FIELD_WIDTH];
-    BlockGroup nextPieces[NEXT_QUEUE_LENGTH][PIECE_BLOCK_COUNT];
+    BlockGroup field[CT_TOTAL_FIELD_HEIGHT][CT_FIELD_WIDTH];
+    BlockGroup nextPieces[CT_NEXT_QUEUE_MAX_LENGTH][PIECE_BLOCK_COUNT];
     BlockGroup holdPiece[PIECE_BLOCK_COUNT];
 };
 
-void blockBatch_setupActive(Engine *engine, BlockBatch *batch);
+void blockBatch_setupActive(CTetEngine *engine, BlockBatch *batch);
 
-void blockBatch_setupNext(Engine *engine, BlockBatch *batch);
+void blockBatch_setupNext(CTetEngine *engine, BlockBatch *batch);
 
-void blockBatch_setupHold(Engine *engine, BlockBatch *batch);
+void blockBatch_setupHold(CTetEngine *engine, BlockBatch *batch);
 
-void blockBatch_setupField(Engine *engine, BlockBatch *batch);
+void blockBatch_setupField(CTetEngine *engine, BlockBatch *batch);
 
 void blockBatch_initFieldPositions(BlockBatch *batch);
 

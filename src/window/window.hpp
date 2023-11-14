@@ -1,10 +1,8 @@
 #pragma once
 
 #include <windows.h>
+#include <ctet/ctet.h>
 #include "../d3d/d3d-render.hpp"
-extern "C" {
-#include "ctet/engine.h"
-}
 
 struct Window {
     HINSTANCE instance;
@@ -15,7 +13,7 @@ struct Window {
 
 void window_init(Window *window, HINSTANCE instance);
 
-void window_loop(Window *window, Engine *engine);
+void window_loop(Window *window, CTetEngine *engine);
 
 void window_show(HWND window);
 

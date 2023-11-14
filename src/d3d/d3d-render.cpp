@@ -72,7 +72,7 @@ void renderer_cleanup(Renderer *renderer) {
     renderer->deviceContext->Release();
 }
 
-void renderer_drawFrame(Renderer *renderer, Engine *engine, GameRenderingContext *context) {
+void renderer_drawFrame(Renderer *renderer, CTetEngine *engine, GameRenderingContext *context) {
     float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
     renderer->deviceContext->ClearRenderTargetView(renderer->renderTarget, clearColor);
 

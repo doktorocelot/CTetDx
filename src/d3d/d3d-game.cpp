@@ -3,8 +3,8 @@
 #include <array>
 
 static constexpr int BLOCK_BATCH_ACTIVE = PIECE_BLOCK_COUNT;
-static constexpr int BLOCK_BATCH_NEXT = PIECE_BLOCK_COUNT * NEXT_QUEUE_LENGTH;
-static constexpr int BLOCK_BATCH_FIELD = PIECE_BLOCK_COUNT * FIELD_WIDTH * FIELD_HEIGHT;
+static constexpr int BLOCK_BATCH_NEXT = PIECE_BLOCK_COUNT * CT_NEXT_QUEUE_MAX_LENGTH;
+static constexpr int BLOCK_BATCH_FIELD = PIECE_BLOCK_COUNT * CT_FIELD_WIDTH * CT_TOTAL_FIELD_HEIGHT;
 static constexpr int BLOCK_BATCH_HOLD = PIECE_BLOCK_COUNT;
 static constexpr int BLOCK_BATCH_BLOCKS = BLOCK_BATCH_ACTIVE + BLOCK_BATCH_NEXT + BLOCK_BATCH_FIELD;
 static constexpr int BLOCK_BATCH_INDICES = BLOCK_BATCH_BLOCKS * 6;
@@ -173,7 +173,7 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
     ctx->frameMesh.indices = sizeof(frameIndices) / sizeof(UINT);
 }
 
-void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11DeviceContext *deviceContext) {
+void updateBlockBatch(BlockBatch *batch, Mesh *mesh, CTetEngine *engine, ID3D11DeviceContext *deviceContext) {
     blockBatch_setupNext(engine, batch);
     blockBatch_setupHold(engine, batch);
     blockBatch_setupField(engine, batch);

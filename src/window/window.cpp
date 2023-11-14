@@ -63,7 +63,7 @@ void window_init(Window *window, HINSTANCE instance) {
     renderer_init(&window->renderer, window->window, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-void window_loop(Window *window, Engine *engine) {
+void window_loop(Window *window, CTetEngine *engine) {
     MSG msg;
     LARGE_INTEGER frequency, lastTime, currentTime;
     float deltaTime;
@@ -104,25 +104,25 @@ void window_loop(Window *window, Engine *engine) {
         QueryPerformanceCounter(&currentTime);
         
         deltaTime = (float) (currentTime.QuadPart - lastTime.QuadPart) / (float) frequency.QuadPart;
-        
-        engine_tick(engine, deltaTime * 1000);
-        
-        if (keyPressed(&controlTracker, Control_SHIFT_LEFT)) engine_onShiftLeftDown(engine); 
-        if (keyReleased(&controlTracker, Control_SHIFT_LEFT)) engine_onShiftLeftUp(engine); 
-        
-        if (keyPressed(&controlTracker, Control_SHIFT_RIGHT)) engine_onShiftRightDown(engine); 
-        if (keyReleased(&controlTracker, Control_SHIFT_RIGHT)) engine_onShiftRightUp(engine); 
-        
-        if (keyPressed(&controlTracker, Control_ROTATE_LEFT)) engine_onRotateLeft(engine); 
-        if (keyPressed(&controlTracker, Control_ROTATE_RIGHT)) engine_onRotateRight(engine);
 
-        if (keyPressed(&controlTracker, Control_HARD_DROP)) engine_onHardDrop(engine);
+        ctEngine_update(engine, deltaTime * 1000);
         
-        if (keyPressed(&controlTracker, Control_SOFT_DROP)) engine_onSoftDropDown(engine);
-        if (keyReleased(&controlTracker, Control_SOFT_DROP)) engine_onSoftDropUp(engine);
+        if (keyPressed(&controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftDown(engine); 
+        if (keyReleased(&controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftUp(engine); 
         
-        if (keyPressed(&controlTracker, Control_RETRY)) engine_reset(engine);
-        if (keyPressed(&controlTracker, Control_HOLD)) engine_onHoldDown(engine);
+        if (keyPressed(&controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightDown(engine); 
+        if (keyReleased(&controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightUp(engine); 
+        
+        if (keyPressed(&controlTracker, Control_ROTATE_LEFT)) ctEngine_onRotateLeft(engine); 
+        if (keyPressed(&controlTracker, Control_ROTATE_RIGHT)) ctEngine_onRotateRight(engine);
+
+        if (keyPressed(&controlTracker, Control_HARD_DROP)) ctEngine_onHardDrop(engine);
+        
+        if (keyPressed(&controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropDown(engine);
+        if (keyReleased(&controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropUp(engine);
+        
+        if (keyPressed(&controlTracker, Control_RETRY)) ctEngine_reset(engine);
+        if (keyPressed(&controlTracker, Control_HOLD)) ctEngine_onHoldDown(engine);
 
         lastTime = currentTime;
 
