@@ -20,6 +20,8 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
     D3D11_SUBRESOURCE_DATA initData = {};
 
     initData.pSysMem = &ctx->blockBatch;
+    blockBatch_initFieldPositions(&ctx->blockBatch);
+    blockBatch_initNextEnabled(&ctx->blockBatch);
 
     HRESULT r;
 
@@ -65,10 +67,19 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
                     sizeof(float) * 3,
                     D3D11_INPUT_PER_VERTEX_DATA,
                     0,
+            },
+            {
+                    "TEXCOORD",
+                    1,
+                    DXGI_FORMAT_R32_UINT,
+                    0,
+                    sizeof(float) * 3 + sizeof(float),
+                    D3D11_INPUT_PER_VERTEX_DATA,
+                    0,
             }
     };
     shaderPair_init(&ctx->blockMesh.shaders, device, L"resources/shaders/BlockVertex.hlsl",
-                    L"resources/shaders/BlockPixel.hlsl", layoutDesc, 2);
+                    L"resources/shaders/BlockPixel.hlsl", layoutDesc, 3);
     ctx->blockMesh.stride = sizeof(BlockVertex);
     ctx->blockMesh.indices = BLOCK_BATCH_INDICES;
 
@@ -154,10 +165,10 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
 }
 
 void updateBlockBatch(BlockBatch *batch, Mesh *mesh, Engine *engine, ID3D11DeviceContext *deviceContext) {
-    blockBatch_setupActive(engine, batch);
     blockBatch_setupNext(engine, batch);
     blockBatch_setupHold(engine, batch);
     blockBatch_setupField(engine, batch);
+    blockBatch_setupActive(engine, batch);
 
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     auto r = deviceContext->Map(

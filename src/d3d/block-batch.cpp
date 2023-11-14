@@ -6,6 +6,13 @@ void setBlockVertices(BlockGroup *group, float x, float y) {
     group->vertices[3].position = DirectX::XMFLOAT3(x + 1, y + 1, 0.0f);
 }
 
+void setBlockEnabled(BlockGroup *group, bool enabled) {
+    group->vertices[0].enabled = enabled;
+    group->vertices[1].enabled = enabled;
+    group->vertices[2].enabled = enabled;
+    group->vertices[3].enabled = enabled;
+}
+
 void setBlockBrightness(BlockGroup *group, float brightness) {
     group->vertices[0].brightness = brightness;
     group->vertices[1].brightness = brightness;
@@ -32,15 +39,22 @@ void blockBatch_setupActive(Engine *engine, BlockBatch *batch) {
     const Point pieceOffset = engine->active.pos;
     const Point ghostPieceOffset = {0, -activePiece_getDistanceToGround(&engine->active)};
 
+    // Ghost Piece
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
         Point coords = point_addToNew(pieceOffset, engine->active.piece.coords[i]);
-        point_add(&coords, GAME_FIELD_OFFSET);
-        setBlockVertices(&batch->activePiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
-        setBlockBrightness(&batch->activePiece[i], 1);
-
         point_add(&coords, ghostPieceOffset);
-        setBlockVertices(&batch->ghostPiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
-        setBlockBrightness(&batch->ghostPiece[i], 0.4f);
+
+
+        setBlockEnabled(&batch->field[coords.y][coords.x], true);
+        setBlockBrightness(&batch->field[coords.y][coords.x], 0.4f);
+    }
+    // Active Piece
+    for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
+        Point coords = point_addToNew(pieceOffset, engine->active.piece.coords[i]);
+
+
+        setBlockEnabled(&batch->field[coords.y][coords.x], true);
+        setBlockBrightness(&batch->field[coords.y][coords.x], 1);
     }
 }
 
@@ -67,13 +81,14 @@ void blockBatch_setupHold(Engine *engine, BlockBatch *batch) {
 
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
         if (holdPiece.type == PieceType_NONE) {
-            batch->holdPiece[i] = {};
+            setBlockEnabled(&batch->holdPiece[i], false);
             continue;
         }
         auto coords = point_addToNew(holdOffset, holdPiece.coords[i]);
         point_add(&coords, getPieceQueueOffset(holdPiece.type));
         setBlockVertices(&batch->holdPiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
         setBlockBrightness(&batch->holdPiece[i], 1);
+        setBlockEnabled(&batch->holdPiece[i], true);
     }
 }
 
@@ -81,12 +96,30 @@ void blockBatch_setupField(Engine *engine, BlockBatch *batch) {
     for (int y = 0; y < FIELD_HEIGHT; y++) {
         for (int x = 0; x < FIELD_WIDTH; x++) {
             if (engine->field.matrix[y][x].color == BlockColor_NONE) {
-                batch->field[y][x] = {};
+                setBlockEnabled(&batch->field[y][x], false);
                 continue;
             }
-            auto coords = point_addToNew(GAME_FIELD_OFFSET, {x, y});
-            setBlockVertices(&batch->field[y][x], static_cast<float>(coords.x), static_cast<float>(coords.y));
             setBlockBrightness(&batch->field[y][x], 0.8f);
+            setBlockEnabled(&batch->field[y][x], true);
         }
     }
 }
+
+void blockBatch_initFieldPositions(BlockBatch *batch) {
+    for (int y = 0; y < FIELD_HEIGHT; y++) {
+        for (int x = 0; x < FIELD_WIDTH; x++) {
+            auto coords = point_addToNew(GAME_FIELD_OFFSET, {x, y});
+            setBlockVertices(&batch->field[y][x], static_cast<float>(coords.x), static_cast<float>(coords.y));
+        }
+    }
+}
+
+void blockBatch_initNextEnabled(BlockBatch *batch) {
+    for (int i = 0; i < NEXT_QUEUE_LENGTH; i++) {
+        for (int j = 0; j < PIECE_BLOCK_COUNT; j++) {
+            setBlockEnabled(&batch->nextPieces[i][j], true);
+        }
+
+    }
+}
+
