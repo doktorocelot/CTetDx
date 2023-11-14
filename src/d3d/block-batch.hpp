@@ -11,6 +11,7 @@ struct BlockVertex {
     DirectX::XMFLOAT3 position;
     float brightness;
     bool enabled;
+    DirectX::XMFLOAT3 color;
 };
 
 struct BlockGroup {
@@ -19,8 +20,6 @@ struct BlockGroup {
 
 struct BlockBatch {
     BlockGroup field[FIELD_HEIGHT][FIELD_WIDTH];
-//    BlockGroup ghostPiece[PIECE_BLOCK_COUNT];
-//    BlockGroup activePiece[PIECE_BLOCK_COUNT];
     BlockGroup nextPieces[NEXT_QUEUE_LENGTH][PIECE_BLOCK_COUNT];
     BlockGroup holdPiece[PIECE_BLOCK_COUNT];
 };

@@ -76,10 +76,19 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
                     sizeof(float) * 3 + sizeof(float),
                     D3D11_INPUT_PER_VERTEX_DATA,
                     0,
+            },
+            {
+                    "COLOR",
+                    0,
+                    DXGI_FORMAT_R32G32B32_FLOAT,
+                    0,
+                    sizeof(float) * 3 + sizeof(float) + sizeof(unsigned int),
+                    D3D11_INPUT_PER_VERTEX_DATA,
+                    0,
             }
     };
     shaderPair_init(&ctx->blockMesh.shaders, device, L"resources/shaders/BlockVertex.hlsl",
-                    L"resources/shaders/BlockPixel.hlsl", layoutDesc, 3);
+                    L"resources/shaders/BlockPixel.hlsl", layoutDesc, 4);
     ctx->blockMesh.stride = sizeof(BlockVertex);
     ctx->blockMesh.indices = BLOCK_BATCH_INDICES;
 
