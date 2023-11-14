@@ -74,7 +74,9 @@ void blockBatch_setupActive(Engine *engine, BlockBatch *batch) {
 
         setBlockColor(&batch->field[coords.y][coords.x], engine->active.piece.blocks[i].color);
         setBlockEnabled(&batch->field[coords.y][coords.x], true);
-        setBlockBrightness(&batch->field[coords.y][coords.x], 1);
+        constexpr float ratio = 0.7f;
+        float brightness = 1 - (1 - lockdown_lockDelayRemaining(&engine->lockdown)) * ratio;
+        setBlockBrightness(&batch->field[coords.y][coords.x], brightness);
     }
 }
 
