@@ -1,16 +1,30 @@
 #include <d3dcompiler.h>
 #include "shader-pair.hpp"
 #include "check-result.hpp"
+#include <Shlwapi.h>
+#include <string>
+
+static void setDirectoryPath(WCHAR *directoryPath, int size) {
+    GetModuleFileName(nullptr, directoryPath, size);
+    PathRemoveFileSpec(directoryPath);
+}
 
 static HRESULT compileShader(
         LPCWSTR filePath,
         LPCSTR shaderModel,
         ID3DBlob **shaderBlobOut
 ) {
+    WCHAR directoryPath[MAX_PATH];
+    setDirectoryPath(directoryPath, MAX_PATH);
+    std::wstring completeFilePath = directoryPath;
+    completeFilePath.append(L"\\");
+    completeFilePath.append(filePath);
+    
     HRESULT result = S_OK;
+
     ID3DBlob *errorBlob = nullptr;
     result = D3DCompileFromFile(
-            filePath,
+            completeFilePath.c_str(),
             nullptr,
             nullptr,
             "main",

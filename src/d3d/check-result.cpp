@@ -3,7 +3,7 @@
 
 void checkResult(HRESULT r, const char *name) {
     if (FAILED(r)) {
-        std::ostringstream errorMsg;
+        std::wostringstream errorMsg;
         errorMsg
                 << "Function "
                 << name
