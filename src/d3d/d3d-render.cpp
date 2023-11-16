@@ -1,3 +1,4 @@
+#include "game-rendering-context.hpp"
 #include "d3d-render.hpp"
 #include "check-result.hpp"
 #include "mesh.hpp"
@@ -7,7 +8,7 @@ void createRenderTargetView(IDXGISwapChain *swapChain, ID3D11Device *device, ID3
                             ID3D11RenderTargetView **target) {
     ID3D11Texture2D *backBuffer = nullptr;
     HRESULT r;
-    r = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBuffer));
+    r = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&backBuffer));
     checkResult(r, "SwapChain GetBuffer");
     r = device->CreateRenderTargetView(backBuffer, nullptr, target);
     checkResult(r, "Device CreateRenderTargetView");
@@ -15,7 +16,6 @@ void createRenderTargetView(IDXGISwapChain *swapChain, ID3D11Device *device, ID3
 
     deviceContext->OMSetRenderTargets(1, target, nullptr);
 }
-
 
 
 void setViewport(int width, int height, ID3D11DeviceContext *deviceContext) {
@@ -29,13 +29,13 @@ void setViewport(int width, int height, ID3D11DeviceContext *deviceContext) {
 }
 
 void renderer_init(Renderer *renderer, HWND window, int width, int height) {
-    ID3D11Device* device = nullptr;
-    ID3D11DeviceContext* deviceContext = nullptr;
-    IDXGISwapChain* swapChain = nullptr;
+    ID3D11Device *device = nullptr;
+    ID3D11DeviceContext *deviceContext = nullptr;
+    IDXGISwapChain *swapChain = nullptr;
     ID3D11RenderTargetView *target = nullptr;
 
     HRESULT r;
-    
+
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
     swapChainDesc.BufferCount = 1;
     swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -82,11 +82,23 @@ void renderer_drawFrame(Renderer *renderer, CTetEngine *engine, GameRenderingCon
 
     mesh_use(&context->frameMesh, renderer->deviceContext);
     mesh_draw(&context->frameMesh, renderer->deviceContext);
-    
+
     updateBlockBatch(&context->blockBatch, &context->blockMesh, engine, renderer->deviceContext);
     mesh_use(&context->blockMesh, renderer->deviceContext);
     mesh_draw(&context->blockMesh, renderer->deviceContext);
-    
+
     renderer->swapChain->Present(0, 0);
 }
 
+
+void createBuffer(ID3D11Device *device, const void *initData, ID3D11Buffer **destBuffer,
+                  D3D11_BUFFER_DESC bufferDesc) {// Setup buffer desc
+    D3D11_SUBRESOURCE_DATA initDataDescriptor = {};
+
+    initDataDescriptor.pSysMem = initData;
+
+    HRESULT r;
+
+    r = device->CreateBuffer(&bufferDesc, &initDataDescriptor, destBuffer);
+    checkResult(r, "CreateBuffer (Vertex)");
+}

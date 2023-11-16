@@ -25,6 +25,8 @@ set(SOURCES
         src/d3d/game-rendering-context.cpp
         src/d3d/mesh.hpp
         src/d3d/mesh.cpp
+        src/d3d/frame-mesh.hpp
+        src/d3d/frame-mesh.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES})

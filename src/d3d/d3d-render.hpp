@@ -27,3 +27,5 @@ void createRenderTargetView(
 );
 
 void setViewport(int width, int height, ID3D11DeviceContext *deviceContext);
+
+void createBuffer(ID3D11Device *device, const void *initData, ID3D11Buffer **destBuffer, D3D11_BUFFER_DESC bufferDesc);

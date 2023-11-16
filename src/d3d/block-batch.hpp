@@ -2,6 +2,7 @@
 
 #include <DirectXMath.h>
 #include <ctet/ctet.h>
+#include "mesh.hpp"
 
 static constexpr int PIECE_BLOCK_COUNT = 4;
 static constexpr int BLOCK_VERTEX_COUNT = 4;
@@ -35,3 +36,4 @@ void blockBatch_initFieldPositions(BlockBatch *batch);
 
 void blockBatch_initNextEnabled(BlockBatch *batch);
 
+void createBlockBatchMesh(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device);
