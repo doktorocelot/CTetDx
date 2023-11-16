@@ -1,15 +1,8 @@
-#include "d3d-game.hpp"
+#include "game-rendering-context.hpp"
 #include "check-result.hpp"
-#include <array>
 
-static constexpr int BLOCK_BATCH_ACTIVE = PIECE_BLOCK_COUNT;
-static constexpr int BLOCK_BATCH_NEXT = PIECE_BLOCK_COUNT * CT_NEXT_QUEUE_MAX_LENGTH;
-static constexpr int BLOCK_BATCH_FIELD = PIECE_BLOCK_COUNT * CT_FIELD_WIDTH * CT_TOTAL_FIELD_HEIGHT;
-static constexpr int BLOCK_BATCH_HOLD = PIECE_BLOCK_COUNT;
-static constexpr int BLOCK_BATCH_BLOCKS = BLOCK_BATCH_ACTIVE + BLOCK_BATCH_NEXT + BLOCK_BATCH_FIELD;
-static constexpr int BLOCK_BATCH_INDICES = BLOCK_BATCH_BLOCKS * 6;
-
-void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) {
+D3D11_SUBRESOURCE_DATA
+getD11SubresourceData(GameRenderingContext *ctx, ID3D11Device *device) {// Setup buffer desc
     D3D11_BUFFER_DESC bufferDesc{};
 
     bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -17,17 +10,27 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
     bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
+    // Setup initdata
     D3D11_SUBRESOURCE_DATA initData = {};
 
     initData.pSysMem = &ctx->blockBatch;
-    blockBatch_initFieldPositions(&ctx->blockBatch);
-    blockBatch_initNextEnabled(&ctx->blockBatch);
 
     HRESULT r;
 
     r = device->CreateBuffer(&bufferDesc, &initData, &ctx->blockMesh.vertexBuffer);
     checkResult(r, "CreateBuffer (Vertex)");
+    return initData;
+}
 
+void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) {
+    D3D11_BUFFER_DESC bufferDesc;
+    HRESULT r;
+    blockBatch_initFieldPositions(&ctx->blockBatch);
+    blockBatch_initNextEnabled(&ctx->blockBatch);
+    D3D11_SUBRESOURCE_DATA initData = getD11SubresourceData(ctx, device);
+
+    constexpr int TOTAL_BLOCKS_IN_BATCH = sizeof(BlockBatch) / sizeof(BlockGroup);
+    constexpr int BLOCK_BATCH_INDICES = TOTAL_BLOCKS_IN_BATCH * 6;
     bufferDesc = {};
     bufferDesc.Usage = D3D11_USAGE_DEFAULT;
     bufferDesc.ByteWidth = sizeof(UINT) * BLOCK_BATCH_INDICES;
@@ -35,7 +38,7 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
 
     UINT indices[BLOCK_BATCH_INDICES];
     int index = 0;
-    for (int i = 0; i < BLOCK_BATCH_BLOCKS; i++) {
+    for (int i = 0; i < TOTAL_BLOCKS_IN_BATCH; i++) {
         indices[i * 6] = index;
         indices[i * 6 + 1] = index + 2;
         indices[i * 6 + 2] = index + 1;
@@ -194,24 +197,7 @@ void updateBlockBatch(BlockBatch *batch, Mesh *mesh, CTetEngine *engine, ID3D11D
     deviceContext->Unmap(mesh->vertexBuffer, 0);
 }
 
-void mesh_use(Mesh *mesh, ID3D11DeviceContext *deviceContext) {
-    shaderPair_use(&mesh->shaders, deviceContext);
-    UINT offset = 0;
-    deviceContext->IASetVertexBuffers(0, 1, &mesh->vertexBuffer, &mesh->stride, &offset);
-    deviceContext->IASetIndexBuffer(mesh->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-    deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-}
-
-void mesh_draw(Mesh *mesh, ID3D11DeviceContext *deviceContext) {
-    deviceContext->DrawIndexed(mesh->indices, 0, 0);
-}
-
 void gameRenderingContext_cleanup(GameRenderingContext *ctx) {
     mesh_cleanup(&ctx->blockMesh);
 }
 
-void mesh_cleanup(Mesh *mesh) {
-    mesh->vertexBuffer->Release();
-    mesh->indexBuffer->Release();
-    shaderPair_cleanup(&mesh->shaders);
-}

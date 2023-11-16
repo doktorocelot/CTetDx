@@ -4,6 +4,7 @@
 #include <ctet/ctet.h>
 
 static constexpr int PIECE_BLOCK_COUNT = 4;
+static constexpr int BLOCK_VERTEX_COUNT = 4;
 
 struct BlockVertex {
     DirectX::XMFLOAT3 position;
@@ -13,7 +14,7 @@ struct BlockVertex {
 };
 
 struct BlockGroup {
-    BlockVertex vertices[PIECE_BLOCK_COUNT];
+    BlockVertex vertices[BLOCK_VERTEX_COUNT];
 };
 
 struct BlockBatch {

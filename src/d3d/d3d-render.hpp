@@ -3,7 +3,7 @@
 #include <ctet/ctet.h>
 
 #include "d3d11.h"
-#include "d3d-game.hpp"
+#include "game-rendering-context.hpp"
 
 struct Renderer {
     IDXGISwapChain *swapChain;
