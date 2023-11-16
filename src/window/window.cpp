@@ -11,6 +11,31 @@
 #define CTET_WINDOW_PROP_NAME "CTetDx"
 
 
+static void resizeWindow(WPARAM wparam, LPARAM lparam, Window *window) {
+    Renderer *renderer = &window->renderer;
+    if (renderer->device != nullptr && wparam != SIZE_MINIMIZED) {
+        if (renderer->renderTarget != nullptr) {
+            renderer->renderTarget->Release();
+            renderer->renderTarget = nullptr;
+        }
+
+        if (renderer->swapChain != nullptr) {
+            WORD width = LOWORD(lparam);
+            WORD height = HIWORD(lparam);
+            renderer->swapChain->ResizeBuffers(
+                    1,
+                    width,
+                    height,
+                    DXGI_FORMAT_R8G8B8A8_UNORM,
+                    0
+            );
+
+            createRenderTargetView(renderer->swapChain, renderer->device, renderer->deviceContext, &renderer->renderTarget);
+            setViewport(width, height, renderer->deviceContext);
+        }
+    }
+}
+
 LRESULT CALLBACK windowProcedure(HWND windowHandle, UINT msg, WPARAM wparam, LPARAM lparam) {
     auto *window = static_cast<Window *>(GetProp(windowHandle, CTET_WINDOW_PROP_NAME));
     switch (msg) {
@@ -26,6 +51,9 @@ LRESULT CALLBACK windowProcedure(HWND windowHandle, UINT msg, WPARAM wparam, LPA
             break;
         case WM_MOUSEMOVE:
             SetCursor(LoadCursor(nullptr, IDC_ARROW));
+            break;
+        case WM_SIZE:
+            resizeWindow(wparam, lparam, window);
             break;
         default:
             return DefWindowProc(windowHandle, msg, wparam, lparam);
@@ -64,7 +92,7 @@ void window_init(Window *window, HINSTANCE instance) {
         unregisterClassFromWindow(window);
         die("Window could not be created.");
     }
-    
+
     SetProp(window->window, CTET_WINDOW_PROP_NAME, window);
 
     renderer_init(&window->renderer, window->window, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -77,7 +105,7 @@ void window_loop(Window *window, CTetEngine *engine) {
 
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&lastTime);
-    
+
     GameRenderingContext ctx = {};
     gameRenderingContext_init(&ctx, window->renderer.device);
     ControlTracker *controlTracker = &window->controlTracker;
@@ -89,7 +117,7 @@ void window_loop(Window *window, CTetEngine *engine) {
     controlTracker->keyAssign[VK_DOWN] = Control_SOFT_DROP;
     controlTracker->keyAssign[static_cast<int>('C')] = Control_HOLD;
     controlTracker->keyAssign[static_cast<int>('R')] = Control_RETRY;
-    
+
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
@@ -101,31 +129,31 @@ void window_loop(Window *window, CTetEngine *engine) {
             }
         }
         short state = GetAsyncKeyState('Q');
-        
+
         if (state & 0x8000) {
             PostMessage(window->window, WM_CLOSE, 0, 0);
         }
 
         QueryPerformanceCounter(&currentTime);
-        
+
         deltaTime = (float) (currentTime.QuadPart - lastTime.QuadPart) / (float) frequency.QuadPart;
 
         ctEngine_update(engine, deltaTime * 1000);
-        
-        if (keyPressed(controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftDown(engine); 
-        if (keyReleased(controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftUp(engine); 
-        
-        if (keyPressed(controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightDown(engine); 
-        if (keyReleased(controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightUp(engine); 
-        
-        if (keyPressed(controlTracker, Control_ROTATE_LEFT)) ctEngine_onRotateLeft(engine); 
+
+        if (keyPressed(controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftDown(engine);
+        if (keyReleased(controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftUp(engine);
+
+        if (keyPressed(controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightDown(engine);
+        if (keyReleased(controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightUp(engine);
+
+        if (keyPressed(controlTracker, Control_ROTATE_LEFT)) ctEngine_onRotateLeft(engine);
         if (keyPressed(controlTracker, Control_ROTATE_RIGHT)) ctEngine_onRotateRight(engine);
 
         if (keyPressed(controlTracker, Control_HARD_DROP)) ctEngine_onHardDrop(engine);
-        
+
         if (keyPressed(controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropDown(engine);
         if (keyReleased(controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropUp(engine);
-        
+
         if (keyPressed(controlTracker, Control_RETRY)) ctEngine_reset(engine);
         if (keyPressed(controlTracker, Control_HOLD)) ctEngine_onHoldDown(engine);
 
@@ -135,7 +163,7 @@ void window_loop(Window *window, CTetEngine *engine) {
 
         renderer_drawFrame(&window->renderer, engine, &ctx);
     }
-    
+
 }
 
 void window_show(HWND window) {

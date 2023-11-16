@@ -1,12 +1,9 @@
 #include "d3d-render.hpp"
 #include "check-result.hpp"
 
-static void createRenderTargetView(
-        IDXGISwapChain *swapChain,
-        ID3D11Device *device,
-        ID3D11DeviceContext *deviceContext,
-        ID3D11RenderTargetView **target
-) {
+
+void createRenderTargetView(IDXGISwapChain *swapChain, ID3D11Device *device, ID3D11DeviceContext *deviceContext,
+                            ID3D11RenderTargetView **target) {
     ID3D11Texture2D *backBuffer = nullptr;
     HRESULT r;
     r = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID *) &backBuffer);
@@ -14,8 +11,20 @@ static void createRenderTargetView(
     r = device->CreateRenderTargetView(backBuffer, nullptr, target);
     checkResult(r, "Device CreateRenderTargetView");
     backBuffer->Release();
-    
+
     deviceContext->OMSetRenderTargets(1, target, nullptr);
+}
+
+
+
+void setViewport(int width, int height, ID3D11DeviceContext *deviceContext) {
+    D3D11_VIEWPORT viewport = {
+            .TopLeftX = 0,
+            .TopLeftY = 0,
+            .Width = (float) width,
+            .Height = (float) height,
+    };
+    deviceContext->RSSetViewports(1, &viewport);
 }
 
 void renderer_init(Renderer *renderer, HWND window, int width, int height) {
@@ -50,15 +59,9 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
     checkResult(r, "CreateDeviceAndSwapChain");
 
     createRenderTargetView(swapChain, device, deviceContext, &target);
-    
-    D3D11_VIEWPORT viewport = {
-            .TopLeftX = 0,
-            .TopLeftY = 0,
-            .Width = (float) width,
-            .Height = (float) height,
-    };
-    deviceContext->RSSetViewports(1, &viewport);
-    
+
+    setViewport(width, height, deviceContext);
+
     renderer->swapChain = swapChain;
     renderer->renderTarget = target;
     renderer->deviceContext = deviceContext;
