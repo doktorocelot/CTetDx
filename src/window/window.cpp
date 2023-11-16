@@ -3,6 +3,8 @@
 #include "window.hpp"
 #include "../die.hpp"
 
+#include <iostream>
+
 #define WINDOW_TITLE L"CTet"
 #define SCREEN_WIDTH  720
 #define SCREEN_HEIGHT 720

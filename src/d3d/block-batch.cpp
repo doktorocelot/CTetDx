@@ -54,6 +54,22 @@ static CTetPoint getPieceQueueOffset(const CTetPieceType type) {
     return additionalOffset;
 }
 
+static DirectX::XMFLOAT2 realGetPieceQueueOffset(const CTetPieceType type) {
+    DirectX::XMFLOAT2 additionalOffset{};
+    switch (type) {
+        case CTetPieceType_O:
+            additionalOffset = {1, 1};
+            break;
+        case CTetPieceType_I:
+            additionalOffset = {0, -0.5};
+            break;
+        default:
+            additionalOffset = {0.5, 0};
+            break;
+    }
+    return additionalOffset;
+}
+
 static CTetPoint constexpr GAME_FIELD_OFFSET = {-5, -10};
 
 void blockBatch_setupActive(CTetEngine *engine, BlockBatch *batch) {
@@ -89,11 +105,10 @@ void blockBatch_setupNext(CTetEngine *engine, BlockBatch *batch) {
 
     for (int i = 0; i < CT_NEXT_QUEUE_MAX_LENGTH; i++) {
         auto piece = nextPieces[i];
-        auto nextPieceOffset = getPieceQueueOffset(piece.type);
+        auto nextPieceOffset = realGetPieceQueueOffset(piece.type);
         for (int j = 0; j < PIECE_BLOCK_COUNT; j++) {
-            auto coords = ctPoint_addToNew(nextOffset, piece.coords[j]);
-            ctPoint_add(&coords, nextPieceOffset);
-            setBlockVertices(&batch->nextPieces[i][j], ctPointToDx(coords));
+            auto coordsDx = ctPointToDx(ctPoint_addToNew(nextOffset, piece.coords[j]));
+            setBlockVertices(&batch->nextPieces[i][j], {coordsDx.x + nextPieceOffset.x, coordsDx.y + nextPieceOffset.y});
             setBlockBrightness(&batch->nextPieces[i][j], 1);
             setBlockColor(&batch->nextPieces[i][j], piece.blocks[j].color);
         }
@@ -110,9 +125,9 @@ void blockBatch_setupHold(CTetEngine *engine, BlockBatch *batch) {
             setBlockEnabled(&batch->holdPiece[i], false);
             continue;
         }
-        auto coords = ctPoint_addToNew(holdOffset, heldPiece.coords[i]);
-        ctPoint_add(&coords, getPieceQueueOffset(heldPiece.type));
-        setBlockVertices(&batch->holdPiece[i], ctPointToDx(coords));
+        auto coordsDx = ctPointToDx(ctPoint_addToNew(holdOffset, heldPiece.coords[i]));
+        auto offset = realGetPieceQueueOffset(heldPiece.type);
+        setBlockVertices(&batch->holdPiece[i], {coordsDx.x + offset.x - 1.0f, coordsDx.y + offset.y});
         setBlockBrightness(&batch->holdPiece[i], 1);
         setBlockEnabled(&batch->holdPiece[i], true);
         setBlockColor(&batch->holdPiece[i], heldPiece.blocks[i].color);
