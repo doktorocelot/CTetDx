@@ -8,22 +8,27 @@
 #define WINDOW_TITLE "CTet"
 #define SCREEN_WIDTH  720
 #define SCREEN_HEIGHT 720
+#define CTET_WINDOW_PROP_NAME "CTetDx"
 
-LRESULT CALLBACK windowProcedure(HWND window, UINT msg, WPARAM wparam, LPARAM lparam) {
+
+LRESULT CALLBACK windowProcedure(HWND windowHandle, UINT msg, WPARAM wparam, LPARAM lparam) {
+    auto *window = static_cast<Window *>(GetProp(windowHandle, CTET_WINDOW_PROP_NAME));
     switch (msg) {
         case WM_CLOSE:
-            DestroyWindow(window);
+            DestroyWindow(windowHandle);
             break;
         case WM_DESTROY:
             PostQuitMessage(0);
             break;
         case WM_KEYDOWN:
+        case WM_KEYUP:
+            controlTracker_updateCurrent(&window->controlTracker);
             break;
         case WM_MOUSEMOVE:
             SetCursor(LoadCursor(nullptr, IDC_ARROW));
             break;
         default:
-            return DefWindowProc(window, msg, wparam, lparam);
+            return DefWindowProc(windowHandle, msg, wparam, lparam);
     }
     return 0;
 }
@@ -59,6 +64,8 @@ void window_init(Window *window, HINSTANCE instance) {
         unregisterClassFromWindow(window);
         die("Window could not be created.");
     }
+    
+    SetProp(window->window, CTET_WINDOW_PROP_NAME, window);
 
     renderer_init(&window->renderer, window->window, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
@@ -73,16 +80,15 @@ void window_loop(Window *window, CTetEngine *engine) {
     
     GameRenderingContext ctx = {};
     gameRenderingContext_init(&ctx, window->renderer.device);
-    
-    ControlTracker controlTracker{};
-    controlTracker.keyAssign[VK_LEFT] = Control_SHIFT_LEFT;
-    controlTracker.keyAssign[VK_RIGHT] = Control_SHIFT_RIGHT;
-    controlTracker.keyAssign[static_cast<int>('Z')] = Control_ROTATE_LEFT;
-    controlTracker.keyAssign[static_cast<int>('X')] = Control_ROTATE_RIGHT;
-    controlTracker.keyAssign[VK_UP] = Control_HARD_DROP;
-    controlTracker.keyAssign[VK_DOWN] = Control_SOFT_DROP;
-    controlTracker.keyAssign[static_cast<int>('C')] = Control_HOLD;
-    controlTracker.keyAssign[static_cast<int>('R')] = Control_RETRY;
+    ControlTracker *controlTracker = &window->controlTracker;
+    controlTracker->keyAssign[VK_LEFT] = Control_SHIFT_LEFT;
+    controlTracker->keyAssign[VK_RIGHT] = Control_SHIFT_RIGHT;
+    controlTracker->keyAssign[static_cast<int>('Z')] = Control_ROTATE_LEFT;
+    controlTracker->keyAssign[static_cast<int>('X')] = Control_ROTATE_RIGHT;
+    controlTracker->keyAssign[VK_UP] = Control_HARD_DROP;
+    controlTracker->keyAssign[VK_DOWN] = Control_SOFT_DROP;
+    controlTracker->keyAssign[static_cast<int>('C')] = Control_HOLD;
+    controlTracker->keyAssign[static_cast<int>('R')] = Control_RETRY;
     
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -94,7 +100,6 @@ void window_loop(Window *window, CTetEngine *engine) {
                 return;
             }
         }
-        controlTracker_updateCurrent(&controlTracker);
         short state = GetAsyncKeyState('Q');
         
         if (state & 0x8000) {
@@ -107,26 +112,26 @@ void window_loop(Window *window, CTetEngine *engine) {
 
         ctEngine_update(engine, deltaTime * 1000);
         
-        if (keyPressed(&controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftDown(engine); 
-        if (keyReleased(&controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftUp(engine); 
+        if (keyPressed(controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftDown(engine); 
+        if (keyReleased(controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftUp(engine); 
         
-        if (keyPressed(&controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightDown(engine); 
-        if (keyReleased(&controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightUp(engine); 
+        if (keyPressed(controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightDown(engine); 
+        if (keyReleased(controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightUp(engine); 
         
-        if (keyPressed(&controlTracker, Control_ROTATE_LEFT)) ctEngine_onRotateLeft(engine); 
-        if (keyPressed(&controlTracker, Control_ROTATE_RIGHT)) ctEngine_onRotateRight(engine);
+        if (keyPressed(controlTracker, Control_ROTATE_LEFT)) ctEngine_onRotateLeft(engine); 
+        if (keyPressed(controlTracker, Control_ROTATE_RIGHT)) ctEngine_onRotateRight(engine);
 
-        if (keyPressed(&controlTracker, Control_HARD_DROP)) ctEngine_onHardDrop(engine);
+        if (keyPressed(controlTracker, Control_HARD_DROP)) ctEngine_onHardDrop(engine);
         
-        if (keyPressed(&controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropDown(engine);
-        if (keyReleased(&controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropUp(engine);
+        if (keyPressed(controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropDown(engine);
+        if (keyReleased(controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropUp(engine);
         
-        if (keyPressed(&controlTracker, Control_RETRY)) ctEngine_reset(engine);
-        if (keyPressed(&controlTracker, Control_HOLD)) ctEngine_onHoldDown(engine);
+        if (keyPressed(controlTracker, Control_RETRY)) ctEngine_reset(engine);
+        if (keyPressed(controlTracker, Control_HOLD)) ctEngine_onHoldDown(engine);
 
         lastTime = currentTime;
 
-        controlTracker_copyCurrentToPrev(&controlTracker);
+        controlTracker_copyCurrentToPrev(controlTracker);
 
         renderer_drawFrame(&window->renderer, engine, &ctx);
     }
