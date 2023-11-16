@@ -31,6 +31,11 @@ add_subdirectory(extern/ctet)
 target_link_libraries(CTetDx PUBLIC CTet)
 target_link_libraries(CTetDx PUBLIC d3d11.lib dxguid.lib d3dcompiler.lib)
 
+add_compile_options(-DUNICODE -D_UNICODE)
+
+target_compile_options(CTetDx PRIVATE "/utf-8")
+target_compile_options(CTetDx PRIVATE "/D_UNICODE" "/DUNICODE")
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     # Configuration for Release mode
     message("Building in Release mode")
