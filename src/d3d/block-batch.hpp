@@ -8,7 +8,7 @@ static constexpr int PIECE_BLOCK_COUNT = 4;
 static constexpr int BLOCK_VERTEX_COUNT = 4;
 
 struct BlockVertex {
-    DirectX::XMFLOAT3 position;
+    DirectX::XMFLOAT2 position;
     float brightness;
     bool enabled;
     DirectX::XMFLOAT3 color;

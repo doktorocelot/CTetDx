@@ -2,6 +2,7 @@
 #include "check-result.hpp"
 #include "game-rendering-context.hpp"
 #include "block-batch.hpp"
+#include "math-util.hpp"
 
 static DirectX::XMFLOAT3 colors[]{
         DirectX::XMFLOAT3(0, 0, 0),
@@ -14,11 +15,11 @@ static DirectX::XMFLOAT3 colors[]{
         DirectX::XMFLOAT3(0.59, 0.18, 0.6),
 };
 
-void setBlockVertices(BlockGroup *group, float x, float y) {
-    group->vertices[0].position = DirectX::XMFLOAT3(x, y, 0.0f);
-    group->vertices[1].position = DirectX::XMFLOAT3(x + 1, y, 0.0f);
-    group->vertices[2].position = DirectX::XMFLOAT3(x, y + 1, 0.0f);
-    group->vertices[3].position = DirectX::XMFLOAT3(x + 1, y + 1, 0.0f);
+void setBlockVertices(BlockGroup *group, DirectX::XMFLOAT2 position) {
+    group->vertices[0].position = DirectX::XMFLOAT2(position.x, position.y);
+    group->vertices[1].position = DirectX::XMFLOAT2(position.x + 1, position.y);
+    group->vertices[2].position = DirectX::XMFLOAT2(position.x, position.y + 1);
+    group->vertices[3].position = DirectX::XMFLOAT2(position.x + 1, position.y + 1);
 }
 
 void setBlockColor(BlockGroup *group, CTetBlockColor color) {
@@ -92,7 +93,7 @@ void blockBatch_setupNext(CTetEngine *engine, BlockBatch *batch) {
         for (int j = 0; j < PIECE_BLOCK_COUNT; j++) {
             auto coords = ctPoint_addToNew(nextOffset, piece.coords[j]);
             ctPoint_add(&coords, nextPieceOffset);
-            setBlockVertices(&batch->nextPieces[i][j], static_cast<float>(coords.x), static_cast<float>(coords.y));
+            setBlockVertices(&batch->nextPieces[i][j], ctPointToDx(coords));
             setBlockBrightness(&batch->nextPieces[i][j], 1);
             setBlockColor(&batch->nextPieces[i][j], piece.blocks[j].color);
         }
@@ -111,7 +112,7 @@ void blockBatch_setupHold(CTetEngine *engine, BlockBatch *batch) {
         }
         auto coords = ctPoint_addToNew(holdOffset, heldPiece.coords[i]);
         ctPoint_add(&coords, getPieceQueueOffset(heldPiece.type));
-        setBlockVertices(&batch->holdPiece[i], static_cast<float>(coords.x), static_cast<float>(coords.y));
+        setBlockVertices(&batch->holdPiece[i], ctPointToDx(coords));
         setBlockBrightness(&batch->holdPiece[i], 1);
         setBlockEnabled(&batch->holdPiece[i], true);
         setBlockColor(&batch->holdPiece[i], heldPiece.blocks[i].color);
@@ -137,7 +138,7 @@ void blockBatch_initFieldPositions(BlockBatch *batch) {
     for (int y = 0; y < CT_TOTAL_FIELD_HEIGHT; y++) {
         for (int x = 0; x < CT_FIELD_WIDTH; x++) {
             auto coords = ctPoint_addToNew(GAME_FIELD_OFFSET, {x, y});
-            setBlockVertices(&batch->field[y][x], static_cast<float>(coords.x), static_cast<float>(coords.y));
+            setBlockVertices(&batch->field[y][x], ctPointToDx(coords));
         }
     }
 }
@@ -191,7 +192,7 @@ static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device) {
             {
                     "POSITION",
                     0,
-                    DXGI_FORMAT_R32G32B32_FLOAT,
+                    DXGI_FORMAT_R32G32_FLOAT,
                     0,
                     0,
                     D3D11_INPUT_PER_VERTEX_DATA,
@@ -202,7 +203,7 @@ static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device) {
                     0,
                     DXGI_FORMAT_R32_FLOAT,
                     0,
-                    sizeof(float) * 3,
+                    sizeof(float) * 2,
                     D3D11_INPUT_PER_VERTEX_DATA,
                     0,
             },
@@ -211,7 +212,7 @@ static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device) {
                     1,
                     DXGI_FORMAT_R32_UINT,
                     0,
-                    sizeof(float) * 3 + sizeof(float),
+                    sizeof(float) * 2 + sizeof(float),
                     D3D11_INPUT_PER_VERTEX_DATA,
                     0,
             },
@@ -220,7 +221,7 @@ static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device) {
                     0,
                     DXGI_FORMAT_R32G32B32_FLOAT,
                     0,
-                    sizeof(float) * 3 + sizeof(float) + sizeof(unsigned int),
+                    sizeof(float) * 2 + sizeof(float) + sizeof(unsigned int),
                     D3D11_INPUT_PER_VERTEX_DATA,
                     0,
             }
