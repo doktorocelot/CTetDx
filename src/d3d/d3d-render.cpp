@@ -6,7 +6,7 @@ void createRenderTargetView(IDXGISwapChain *swapChain, ID3D11Device *device, ID3
                             ID3D11RenderTargetView **target) {
     ID3D11Texture2D *backBuffer = nullptr;
     HRESULT r;
-    r = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID *) &backBuffer);
+    r = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBuffer));
     checkResult(r, "SwapChain GetBuffer");
     r = device->CreateRenderTargetView(backBuffer, nullptr, target);
     checkResult(r, "Device CreateRenderTargetView");
