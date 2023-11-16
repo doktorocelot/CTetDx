@@ -1,7 +1,7 @@
 struct VertexInput {
     float2 Position : POSITION;
-    float Brightness : TEXCOORD0;
-    bool Enabled : TEXCOORD1;
+    float Brightness : BRIGHTNESS;
+    bool Enabled : ENABLED;
     float3 Color : COLOR;
 };
 

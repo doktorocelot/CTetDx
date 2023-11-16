@@ -214,7 +214,7 @@ static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device) {
                     0,
             },
             {
-                    "TEXCOORD",
+                    "BRIGHTNESS",
                     0,
                     DXGI_FORMAT_R32_FLOAT,
                     0,
@@ -223,8 +223,8 @@ static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device) {
                     0,
             },
             {
-                    "TEXCOORD",
-                    1,
+                    "ENABLED",
+                    0,
                     DXGI_FORMAT_R32_UINT,
                     0,
                     sizeof(float) * 2 + sizeof(float),
