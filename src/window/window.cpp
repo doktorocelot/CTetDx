@@ -3,10 +3,10 @@
 #include "window.hpp"
 #include "../die.hpp"
 
-#define WINDOW_TITLE "CTet"
+#define WINDOW_TITLE L"CTet"
 #define SCREEN_WIDTH  720
 #define SCREEN_HEIGHT 720
-#define CTET_WINDOW_PROP_NAME "CTetDx"
+#define CTET_WINDOW_PROP_NAME L"CTetDx"
 
 
 static void resizeWindow(WPARAM wparam, LPARAM lparam, Window *window) {
@@ -64,7 +64,7 @@ static void unregisterClassFromWindow(Window *window) {
 }
 
 void window_init(Window *window, HINSTANCE instance) {
-    window->className = "MainWindowClass";
+    window->className = L"MainWindowClass";
 
     WNDCLASSEX wc = {
             .cbSize = sizeof(WNDCLASSEX),

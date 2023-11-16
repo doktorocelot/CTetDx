@@ -7,7 +7,7 @@
 
 struct Window {
     HINSTANCE instance;
-    LPCSTR className;
+    LPCWSTR className;
     HWND window;
     Renderer renderer;
     ControlTracker controlTracker;

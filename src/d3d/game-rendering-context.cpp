@@ -90,8 +90,8 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
                     0,
             }
     };
-    shaderPair_init(&ctx->blockMesh.shaders, device, L"resources/shaders/BlockVertex.hlsl",
-                    L"resources/shaders/BlockPixel.hlsl", layoutDesc, 4);
+    shaderPair_init(&ctx->blockMesh.shaders, device, L"resources\\shaders\\BlockVertex.hlsl",
+                    L"resources\\shaders\\BlockPixel.hlsl", layoutDesc, 4);
     ctx->blockMesh.stride = sizeof(BlockVertex);
     ctx->blockMesh.indices = BLOCK_BATCH_INDICES;
 
@@ -169,8 +169,8 @@ void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) 
             }
     };
     shaderPair_init(&ctx->frameMesh.shaders, device,
-                    L"resources/shaders/FrameVertex.hlsl",
-                    L"resources/shaders/FramePixel.hlsl",
+                    L"resources\\shaders\\FrameVertex.hlsl",
+                    L"resources\\shaders\\FramePixel.hlsl",
                     frameLayoutDesc, 1);
     ctx->frameMesh.stride = sizeof(FrameVertex);
     ctx->frameMesh.indices = sizeof(frameIndices) / sizeof(UINT);
