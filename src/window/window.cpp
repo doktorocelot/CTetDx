@@ -2,8 +2,6 @@
 #include <sstream>
 #include "window.hpp"
 #include "../die.hpp"
-#include "../d3d/d3d-game.hpp"
-#include "../control/control.hpp"
 
 #define WINDOW_TITLE L"CTet"
 #define SCREEN_WIDTH  720

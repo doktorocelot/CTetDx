@@ -15,14 +15,18 @@ set(SOURCES
         src/d3d/d3d-render.cpp
         src/die.hpp
         src/die.cpp
-        src/d3d/d3d-game.hpp
-        src/d3d/d3d-game.cpp
         src/d3d/shader-pair.hpp
         src/d3d/shader-pair.cpp
         src/control/control.hpp
         src/control/control.cpp
         src/d3d/block-batch.hpp
         src/d3d/block-batch.cpp
+        src/d3d/game-rendering-context.hpp
+        src/d3d/game-rendering-context.cpp
+        src/d3d/mesh.hpp
+        src/d3d/mesh.cpp
+        src/d3d/frame-mesh.hpp
+        src/d3d/frame-mesh.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES})

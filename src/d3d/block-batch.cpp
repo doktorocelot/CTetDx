@@ -1,3 +1,6 @@
+#include "d3d-render.hpp"
+#include "check-result.hpp"
+#include "game-rendering-context.hpp"
 #include "block-batch.hpp"
 
 static DirectX::XMFLOAT3 colors[]{
@@ -20,24 +23,21 @@ void setBlockVertices(BlockGroup *group, float x, float y) {
 
 void setBlockColor(BlockGroup *group, CTetBlockColor color) {
     auto colorVal = colors[color];
-    group->vertices[0].color = colorVal;
-    group->vertices[1].color = colorVal;
-    group->vertices[2].color = colorVal;
-    group->vertices[3].color = colorVal;
+    for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
+        group->vertices[i].color = colorVal;
+    }
 }
 
 void setBlockEnabled(BlockGroup *group, bool enabled) {
-    group->vertices[0].enabled = enabled;
-    group->vertices[1].enabled = enabled;
-    group->vertices[2].enabled = enabled;
-    group->vertices[3].enabled = enabled;
+    for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
+        group->vertices[i].enabled = enabled;
+    }
 }
 
 void setBlockBrightness(BlockGroup *group, float brightness) {
-    group->vertices[0].brightness = brightness;
-    group->vertices[1].brightness = brightness;
-    group->vertices[2].brightness = brightness;
-    group->vertices[3].brightness = brightness;
+    for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
+        group->vertices[i].brightness = brightness;
+    }
 }
 
 static CTetPoint getPieceQueueOffset(const CTetPieceType type) {
@@ -151,3 +151,90 @@ void blockBatch_initNextEnabled(BlockBatch *batch) {
     }
 }
 
+static void createBlockBatchIndexBuffer(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device) {
+    constexpr int TOTAL_BLOCKS_IN_BATCH = sizeof(BlockBatch) / sizeof(BlockGroup);
+    constexpr int BLOCK_BATCH_INDICES = TOTAL_BLOCKS_IN_BATCH * 6;
+
+    UINT indices[BLOCK_BATCH_INDICES];
+    int index = 0;
+    for (int i = 0; i < TOTAL_BLOCKS_IN_BATCH; i++) {
+        indices[i * 6] = index;
+        indices[i * 6 + 1] = index + 2;
+        indices[i * 6 + 2] = index + 1;
+        indices[i * 6 + 3] = index + 3;
+        indices[i * 6 + 4] = index + 1;
+        indices[i * 6 + 5] = index + 2;
+        index += 4;
+    }
+
+    createBuffer(device, indices, &blockMesh->indexBuffer, {
+            .ByteWidth = sizeof(UINT) * BLOCK_BATCH_INDICES,
+            .Usage = D3D11_USAGE_DEFAULT,
+            .BindFlags = D3D11_BIND_INDEX_BUFFER,
+    });
+
+    blockMesh->indices = BLOCK_BATCH_INDICES;
+}
+
+static void createBlockBatchVertexBuffer(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device) {
+    createBuffer(device, blockBatch, &blockMesh->vertexBuffer, {
+            .ByteWidth = sizeof(BlockBatch),
+            .Usage = D3D11_USAGE_DYNAMIC,
+            .BindFlags = D3D11_BIND_VERTEX_BUFFER,
+            .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+    });
+    blockMesh->stride = sizeof(BlockVertex);
+}
+
+static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device) {
+    D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
+            {
+                    "POSITION",
+                    0,
+                    DXGI_FORMAT_R32G32B32_FLOAT,
+                    0,
+                    0,
+                    D3D11_INPUT_PER_VERTEX_DATA,
+                    0,
+            },
+            {
+                    "TEXCOORD",
+                    0,
+                    DXGI_FORMAT_R32_FLOAT,
+                    0,
+                    sizeof(float) * 3,
+                    D3D11_INPUT_PER_VERTEX_DATA,
+                    0,
+            },
+            {
+                    "TEXCOORD",
+                    1,
+                    DXGI_FORMAT_R32_UINT,
+                    0,
+                    sizeof(float) * 3 + sizeof(float),
+                    D3D11_INPUT_PER_VERTEX_DATA,
+                    0,
+            },
+            {
+                    "COLOR",
+                    0,
+                    DXGI_FORMAT_R32G32B32_FLOAT,
+                    0,
+                    sizeof(float) * 3 + sizeof(float) + sizeof(unsigned int),
+                    D3D11_INPUT_PER_VERTEX_DATA,
+                    0,
+            }
+    };
+    shaderPair_init(&blockMesh->shaders, device, L"resources\\shaders\\BlockVertex.hlsl",
+                    L"resources\\shaders\\BlockPixel.hlsl", layoutDesc, 4);
+}
+
+void createBlockBatchMesh(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device) {
+    blockBatch_initFieldPositions(blockBatch);
+    blockBatch_initNextEnabled(blockBatch);
+
+    createBlockBatchVertexBuffer(blockBatch, blockMesh, device);
+    createBlockBatchIndexBuffer(blockBatch, blockMesh, device);
+
+    createBlockMeshShader(blockMesh, device);
+}
