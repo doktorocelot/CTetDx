@@ -32,5 +32,6 @@ void updateBlockBatch(BlockBatch *batch, Mesh *mesh, CTetEngine *engine, ID3D11D
 
 void gameRenderingContext_cleanup(GameRenderingContext *ctx) {
     mesh_cleanup(&ctx->blockMesh);
+    mesh_cleanup(&ctx->frameMesh);
 }
 
