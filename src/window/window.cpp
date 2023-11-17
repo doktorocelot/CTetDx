@@ -6,8 +6,8 @@
 #include <iostream>
 
 #define WINDOW_TITLE L"CTet"
-#define SCREEN_WIDTH  720
-#define SCREEN_HEIGHT 720
+#define WINDOW_WIDTH  720
+#define WINDOW_HEIGHT 720
 #define CTET_WINDOW_PROP_NAME L"CTetDx"
 
 
@@ -39,6 +39,36 @@ static void resizeWindow(WPARAM wparam, LPARAM lparam, Window *window) {
     }
 }
 
+static void setWindowCentered(HWND windowHandle, const MONITORINFO &mi) {
+    RECT windowRect;
+    windowRect.left = (mi.rcMonitor.right - mi.rcMonitor.left - WINDOW_WIDTH) / 2 + mi.rcMonitor.left;
+    windowRect.top = (mi.rcMonitor.bottom - mi.rcMonitor.top - WINDOW_HEIGHT) / 2 + mi.rcMonitor.top;
+    windowRect.right = windowRect.left + WINDOW_WIDTH;
+    windowRect.bottom = windowRect.top + WINDOW_HEIGHT;
+
+    SetWindowLongPtr(windowHandle, GWL_STYLE, WS_VISIBLE | WS_OVERLAPPEDWINDOW);
+    SetWindowPos(windowHandle, nullptr, windowRect.left, windowRect.top,
+                 windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, SWP_FRAMECHANGED);
+}
+
+void toggleFullscreen(HWND windowHandle) {
+    MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hMonitor = MonitorFromWindow(windowHandle, MONITOR_DEFAULTTONEAREST);
+    GetMonitorInfo(hMonitor, &mi);
+
+    if (GetWindowLongPtr(windowHandle, GWL_STYLE) & WS_POPUP) {
+        // Switch to windowed mode
+        setWindowCentered(windowHandle, mi);
+
+    }
+    else {
+        // Switch to fullscreen mode
+        SetWindowLongPtr(windowHandle, GWL_STYLE, WS_VISIBLE | WS_POPUP);
+        SetWindowPos(windowHandle, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
+                     mi.rcMonitor.right - mi.rcMonitor.left, mi.rcMonitor.bottom - mi.rcMonitor.top, SWP_FRAMECHANGED);
+    }
+}
+
 LRESULT CALLBACK windowProcedure(HWND windowHandle, UINT msg, WPARAM wparam, LPARAM lparam) {
     auto *window = static_cast<Window *>(GetProp(windowHandle, CTET_WINDOW_PROP_NAME));
     switch (msg) {
@@ -48,7 +78,16 @@ LRESULT CALLBACK windowProcedure(HWND windowHandle, UINT msg, WPARAM wparam, LPA
         case WM_DESTROY:
             PostQuitMessage(0);
             break;
-        case WM_KEYDOWN:
+        case WM_KEYDOWN: {
+            if (GetAsyncKeyState('Q') & 0x8000) {
+                PostMessage(windowHandle, WM_CLOSE, 0, 0);
+            }
+            if (GetAsyncKeyState('F') & 0x8000) {
+                toggleFullscreen(windowHandle);
+            }
+            controlTracker_updateCurrent(&window->controlTracker);
+            break;
+        }
         case WM_KEYUP:
             controlTracker_updateCurrent(&window->controlTracker);
             break;
@@ -87,7 +126,7 @@ void window_init(Window *window, HINSTANCE instance) {
             window->className,
             WINDOW_TITLE,
             WS_OVERLAPPEDWINDOW,
-            CW_USEDEFAULT, CW_USEDEFAULT, SCREEN_WIDTH, SCREEN_HEIGHT,
+            CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
             nullptr, nullptr, instance, nullptr
     );
 
@@ -98,7 +137,7 @@ void window_init(Window *window, HINSTANCE instance) {
 
     SetProp(window->window, CTET_WINDOW_PROP_NAME, window);
 
-    renderer_init(&window->renderer, window->window, SCREEN_WIDTH, SCREEN_HEIGHT);
+    renderer_init(&window->renderer, window->window, WINDOW_WIDTH, WINDOW_HEIGHT);
 }
 
 void window_loop(Window *window, CTetEngine *engine) {
@@ -120,7 +159,7 @@ void window_loop(Window *window, CTetEngine *engine) {
     controlTracker->keyAssign[VK_DOWN] = Control_SOFT_DROP;
     controlTracker->keyAssign[static_cast<int>('C')] = Control_HOLD;
     controlTracker->keyAssign[static_cast<int>('R')] = Control_RETRY;
-
+    
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
@@ -130,11 +169,6 @@ void window_loop(Window *window, CTetEngine *engine) {
                 gameRenderingContext_cleanup(&ctx);
                 return;
             }
-        }
-        short state = GetAsyncKeyState('Q');
-
-        if (state & 0x8000) {
-            PostMessage(window->window, WM_CLOSE, 0, 0);
         }
 
         QueryPerformanceCounter(&currentTime);
@@ -170,6 +204,10 @@ void window_loop(Window *window, CTetEngine *engine) {
 }
 
 void window_show(HWND window) {
+    MONITORINFO mi = { sizeof(mi) };
+    HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+    GetMonitorInfo(hMonitor, &mi);
+    setWindowCentered(window, mi);
     ShowWindow(window, SW_SHOWNORMAL);
     UpdateWindow(window);
 }
