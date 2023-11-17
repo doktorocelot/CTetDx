@@ -45,7 +45,7 @@ static const UINT frameIndices[] = {
         1, 8, 0
 };
 
-void createFrameMesh(Mesh *frameMesh, ID3D11Device *device) {
+void createFrameMesh(Mesh *frameMesh, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer) {
     // Create vertex
     createBuffer(device, frameVertices, &frameMesh->vertexBuffer, {
             .ByteWidth = sizeof(frameVertices),
@@ -78,4 +78,6 @@ void createFrameMesh(Mesh *frameMesh, ID3D11Device *device) {
                     L"resources\\shaders\\FrameVertex.hlsl",
                     L"resources\\shaders\\FramePixel.hlsl",
                     frameLayoutDesc, 1);
+
+    frameMesh->shaders.constantBuffersVs.push_back(aspectRatioBuffer);
 }

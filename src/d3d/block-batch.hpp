@@ -36,4 +36,4 @@ void blockBatch_initFieldPositions(BlockBatch *batch);
 
 void blockBatch_initNextEnabled(BlockBatch *batch);
 
-void createBlockBatchMesh(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device);
+void createBlockBatchMesh(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer);

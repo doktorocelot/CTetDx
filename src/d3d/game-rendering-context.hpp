@@ -7,6 +7,9 @@ struct FrameVertex {
     DirectX::XMFLOAT3 position;
 };
 
+struct alignas(16) AspectConstantBuffer {
+    float aspectRatio;
+};
 
 struct GameRenderingContext {
     BlockBatch blockBatch;
@@ -14,6 +17,6 @@ struct GameRenderingContext {
     Mesh frameMesh;
 };
 
-void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device);
+void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer);
 void gameRenderingContext_cleanup(GameRenderingContext *ctx);
 void updateBlockBatch(BlockBatch *batch, Mesh *mesh, CTetEngine *engine, ID3D11DeviceContext *deviceContext);

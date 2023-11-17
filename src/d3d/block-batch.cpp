@@ -108,7 +108,8 @@ void blockBatch_setupNext(CTetEngine *engine, BlockBatch *batch) {
         auto nextPieceOffset = realGetPieceQueueOffset(piece.type);
         for (int j = 0; j < PIECE_BLOCK_COUNT; j++) {
             auto coordsDx = ctPointToDx(ctPoint_addToNew(nextOffset, piece.coords[j]));
-            setBlockVertices(&batch->nextPieces[i][j], {coordsDx.x + nextPieceOffset.x, coordsDx.y + nextPieceOffset.y});
+            setBlockVertices(&batch->nextPieces[i][j],
+                             {coordsDx.x + nextPieceOffset.x, coordsDx.y + nextPieceOffset.y});
             setBlockBrightness(&batch->nextPieces[i][j], 1);
             setBlockColor(&batch->nextPieces[i][j], piece.blocks[j].color);
         }
@@ -202,7 +203,7 @@ static void createBlockBatchVertexBuffer(BlockBatch *blockBatch, Mesh *blockMesh
     blockMesh->stride = sizeof(BlockVertex);
 }
 
-static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device) {
+static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer) {
     D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
             {
                     "POSITION",
@@ -243,14 +244,15 @@ static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device) {
     };
     shaderPair_init(&blockMesh->shaders, device, L"resources\\shaders\\BlockVertex.hlsl",
                     L"resources\\shaders\\BlockPixel.hlsl", layoutDesc, 4);
+    blockMesh->shaders.constantBuffersVs.push_back(aspectRatioBuffer);
 }
 
-void createBlockBatchMesh(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device) {
+void createBlockBatchMesh(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer) {
     blockBatch_initFieldPositions(blockBatch);
     blockBatch_initNextEnabled(blockBatch);
 
     createBlockBatchVertexBuffer(blockBatch, blockMesh, device);
     createBlockBatchIndexBuffer(blockBatch, blockMesh, device);
 
-    createBlockMeshShader(blockMesh, device);
+    createBlockMeshShader(blockMesh, device, aspectRatioBuffer);
 }

@@ -28,6 +28,16 @@ void setViewport(int width, int height, ID3D11DeviceContext *deviceContext) {
     deviceContext->RSSetViewports(1, &viewport);
 }
 
+static void createAspectRatioBuffer(Renderer *renderer) {
+    createBuffer(renderer->device, &renderer->aspectRatioBufferData, &renderer->aspectRatioBuffer, {
+            .ByteWidth = sizeof(AspectConstantBuffer),
+            .Usage = D3D11_USAGE_DYNAMIC,
+            .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+            .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+            .MiscFlags = 0,
+    });
+}
+
 void renderer_init(Renderer *renderer, HWND window, int width, int height) {
     ID3D11Device *device = nullptr;
     ID3D11DeviceContext *deviceContext = nullptr;
@@ -62,11 +72,15 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
     createRenderTargetView(swapChain, device, deviceContext, &target);
 
     setViewport(width, height, deviceContext);
-
+    
+    renderer->aspectRatioBufferData = {(float) width / (float) height};
+    
     renderer->swapChain = swapChain;
     renderer->renderTarget = target;
     renderer->deviceContext = deviceContext;
     renderer->device = device;
+    
+    createAspectRatioBuffer(renderer);
 }
 
 void renderer_cleanup(Renderer *renderer) {
@@ -90,6 +104,16 @@ void renderer_drawFrame(Renderer *renderer, CTetEngine *engine, GameRenderingCon
     renderer->swapChain->Present(0, 0);
 }
 
+void renderer_setAspectRatio(Renderer *renderer) {
+    D3D11_MAPPED_SUBRESOURCE mappedAspect;
+    ID3D11Resource *aspectRatioBuffer = renderer->aspectRatioBuffer;
+    renderer->deviceContext->Map(aspectRatioBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedAspect);
+
+    memcpy(mappedAspect.pData, &renderer->aspectRatioBufferData, sizeof(float ));
+
+    renderer->deviceContext->Unmap(aspectRatioBuffer, 0);
+}
+
 
 void createBuffer(ID3D11Device *device, const void *initData, ID3D11Buffer **destBuffer,
                   D3D11_BUFFER_DESC bufferDesc) {// Setup buffer desc
@@ -100,5 +124,5 @@ void createBuffer(ID3D11Device *device, const void *initData, ID3D11Buffer **des
     HRESULT r;
 
     r = device->CreateBuffer(&bufferDesc, &initDataDescriptor, destBuffer);
-    checkResult(r, "CreateBuffer (Vertex)");
+    checkResult(r, "CreateBuffer");
 }

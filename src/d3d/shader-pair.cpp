@@ -80,6 +80,9 @@ void shaderPair_init(ShaderPair *pair, ID3D11Device *device, LPCWSTR vertexPath,
     
     vertexShaderBlob->Release();
     pixelShaderBlob->Release();
+    
+    pair->constantBuffersVs = {};
+    pair->constantBuffersPs = {};
 }
 
 void shaderPair_cleanup(ShaderPair *pair) {
@@ -92,4 +95,6 @@ void shaderPair_use(ShaderPair *pair, ID3D11DeviceContext *deviceContext) {
     deviceContext->VSSetShader(pair->vertexShader, nullptr, 0);
     deviceContext->PSSetShader(pair->pixelShader, nullptr, 0);
     deviceContext->IASetInputLayout(pair->inputLayout);
+    deviceContext->VSSetConstantBuffers(0, pair->constantBuffersVs.size(), pair->constantBuffersVs.data());
+    deviceContext->PSSetConstantBuffers(0, pair->constantBuffersPs.size(), pair->constantBuffersPs.data());
 }

@@ -29,6 +29,9 @@ static void resizeWindow(WPARAM wparam, LPARAM lparam, Window *window) {
                     DXGI_FORMAT_R8G8B8A8_UNORM,
                     0
             );
+            
+            renderer->aspectRatioBufferData = {(float) width / (float) height};
+            renderer_setAspectRatio(renderer);
 
             createRenderTargetView(renderer->swapChain, renderer->device, renderer->deviceContext, &renderer->renderTarget);
             setViewport(width, height, renderer->deviceContext);
@@ -107,7 +110,7 @@ void window_loop(Window *window, CTetEngine *engine) {
     QueryPerformanceCounter(&lastTime);
 
     GameRenderingContext ctx = {};
-    gameRenderingContext_init(&ctx, window->renderer.device);
+    gameRenderingContext_init(&ctx, window->renderer.device, window->renderer.aspectRatioBuffer);
     ControlTracker *controlTracker = &window->controlTracker;
     controlTracker->keyAssign[VK_LEFT] = Control_SHIFT_LEFT;
     controlTracker->keyAssign[VK_RIGHT] = Control_SHIFT_RIGHT;

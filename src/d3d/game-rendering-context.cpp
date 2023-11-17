@@ -4,9 +4,9 @@
 #include "block-batch.hpp"
 #include "frame-mesh.hpp"
 
-void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device) {
-    createBlockBatchMesh(&ctx->blockBatch, &ctx->blockMesh, device);
-    createFrameMesh(&ctx->frameMesh, device);
+void gameRenderingContext_init(GameRenderingContext *ctx, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer) {
+    createBlockBatchMesh(&ctx->blockBatch, &ctx->blockMesh, device, aspectRatioBuffer);
+    createFrameMesh(&ctx->frameMesh, device, aspectRatioBuffer);
 }
 
 void updateBlockBatch(BlockBatch *batch, Mesh *mesh, CTetEngine *engine, ID3D11DeviceContext *deviceContext) {

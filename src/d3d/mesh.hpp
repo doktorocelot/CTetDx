@@ -9,7 +9,6 @@ struct Mesh {
     ShaderPair shaders;
     UINT stride;
     UINT indices;
-    
 };
 
 void mesh_use(Mesh *mesh, ID3D11DeviceContext *deviceContext);
