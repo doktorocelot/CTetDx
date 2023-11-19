@@ -64,7 +64,7 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
             nullptr,
             D3D_DRIVER_TYPE_HARDWARE,
             nullptr,
-            createDeviceFlags, //todo turn this off in release mode
+            createDeviceFlags,
             nullptr,
             0,
             D3D11_SDK_VERSION,
