@@ -1,5 +1,6 @@
 #include <sstream>
 #include "check-result.hpp"
+#include "../die.hpp"
 
 void checkResult(HRESULT r, const char *name) {
     if (FAILED(r)) {
@@ -12,6 +13,6 @@ void checkResult(HRESULT r, const char *name) {
                 << ": "
                 << _com_error(r).ErrorMessage()
                 << std::endl;
-        OutputDebugString(errorMsg.str().c_str());
+        die(errorMsg.str().c_str());
     }
 }

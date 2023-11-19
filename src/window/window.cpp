@@ -132,7 +132,7 @@ void window_init(Window *window, HINSTANCE instance) {
 
     if (window->window == nullptr) {
         unregisterClassFromWindow(window);
-        die("Window could not be created.");
+        die(L"Window could not be created.");
     }
 
     SetProp(window->window, CTET_WINDOW_PROP_NAME, window);

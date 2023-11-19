@@ -3,11 +3,11 @@
 #include "die.hpp"
 #include "windows.h"
 
-void die(const char *reason) {
-    std::ostringstream errorMsg;
+void die(const wchar_t *reason) {
+    std::wostringstream errorMsg;
     errorMsg << "Critical Error: " << reason << std::endl;
-    OutputDebugStringA(errorMsg.str().c_str());
-    std::cerr << errorMsg.str();
-    MessageBoxA(nullptr, errorMsg.str().c_str(), "Critical Error", MB_ICONERROR | MB_OK);
+    OutputDebugString(errorMsg.str().c_str());
+    std::wcerr << errorMsg.str();
+    MessageBox(nullptr, errorMsg.str().c_str(), L"Critical Error", MB_ICONERROR | MB_OK);
     exit(-1);
 }

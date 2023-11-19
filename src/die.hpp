@@ -1,3 +1,3 @@
 #pragma once
 
-void die(const char *reason);
+void die(const wchar_t *reason);
