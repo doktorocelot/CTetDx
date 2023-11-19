@@ -136,8 +136,9 @@ void window_init(Window *window, HINSTANCE instance) {
     }
 
     SetProp(window->window, CTET_WINDOW_PROP_NAME, window);
-
-    renderer_init(&window->renderer, window->window, WINDOW_WIDTH, WINDOW_HEIGHT);
+    RECT windowClient{};
+    GetClientRect(window->window, &windowClient);
+    renderer_init(&window->renderer, window->window, windowClient.right - windowClient.left, windowClient.bottom - windowClient.top);
 }
 
 void window_loop(Window *window, CTetEngine *engine) {
