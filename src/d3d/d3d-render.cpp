@@ -53,11 +53,18 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
     swapChainDesc.OutputWindow = window;
     swapChainDesc.SampleDesc.Count = 4;
     swapChainDesc.Windowed = TRUE;
+
+    UINT createDeviceFlags = 0;
+    
+#ifdef DEBUG
+    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
     r = D3D11CreateDeviceAndSwapChain(
             nullptr,
             D3D_DRIVER_TYPE_HARDWARE,
             nullptr,
-            D3D11_CREATE_DEVICE_DEBUG, //todo turn this off in release mode
+            createDeviceFlags, //todo turn this off in release mode
             nullptr,
             0,
             D3D11_SDK_VERSION,
@@ -72,14 +79,14 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
     createRenderTargetView(swapChain, device, deviceContext, &target);
 
     setViewport(width, height, deviceContext);
-    
+
     renderer->aspectRatioBufferData = {(float) width / (float) height};
-    
+
     renderer->swapChain = swapChain;
     renderer->renderTarget = target;
     renderer->deviceContext = deviceContext;
     renderer->device = device;
-    
+
     createAspectRatioBuffer(renderer);
 }
 
@@ -109,7 +116,7 @@ void renderer_setAspectRatio(Renderer *renderer) {
     ID3D11Resource *aspectRatioBuffer = renderer->aspectRatioBuffer;
     renderer->deviceContext->Map(aspectRatioBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedAspect);
 
-    memcpy(mappedAspect.pData, &renderer->aspectRatioBufferData, sizeof(float ));
+    memcpy(mappedAspect.pData, &renderer->aspectRatioBufferData, sizeof(float));
 
     renderer->deviceContext->Unmap(aspectRatioBuffer, 0);
 }
