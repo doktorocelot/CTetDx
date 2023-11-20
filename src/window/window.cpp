@@ -31,7 +31,7 @@ static void resizeWindow(WPARAM wparam, LPARAM lparam, Window *window) {
                     width,
                     height,
                     DXGI_FORMAT_R8G8B8A8_UNORM,
-                    DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING
+                    0
             );
 
             renderer->aspectRatioBufferData = {(float) width / (float) height};
