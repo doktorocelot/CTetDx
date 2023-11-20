@@ -132,8 +132,6 @@ void createBuffer(ID3D11Device *device, const void *initData, ID3D11Buffer **des
 
     initDataDescriptor.pSysMem = initData;
 
-    HRESULT r;
-
-    r = device->CreateBuffer(&bufferDesc, &initDataDescriptor, destBuffer);
+    const HRESULT r = device->CreateBuffer(&bufferDesc, &initDataDescriptor, destBuffer);
     checkResult(r, "CreateBuffer");
 }
