@@ -28,6 +28,8 @@ set(SOURCES
         src/d3d/frame-mesh.hpp
         src/d3d/frame-mesh.cpp
         src/d3d/math-util.hpp
+        src/util/fps-counter.hpp
+        src/util/fps-counter.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES})

@@ -2,10 +2,12 @@
 #include <sstream>
 #include "window.hpp"
 #include "../die.hpp"
+#include "../util/fps-counter.hpp"
 
 #include <iostream>
+#include <iomanip>
 
-#define WINDOW_TITLE L"CTet"
+#define WINDOW_TITLE L"CTetDx"
 #define WINDOW_WIDTH  720
 #define WINDOW_HEIGHT 720
 #define CTET_WINDOW_PROP_NAME L"CTetDx"
@@ -29,11 +31,12 @@ static void resizeWindow(WPARAM wparam, LPARAM lparam, Window *window) {
                     DXGI_FORMAT_R8G8B8A8_UNORM,
                     0
             );
-            
+
             renderer->aspectRatioBufferData = {(float) width / (float) height};
             renderer_setAspectRatio(renderer);
 
-            createRenderTargetView(renderer->swapChain, renderer->device, renderer->deviceContext, &renderer->renderTarget);
+            createRenderTargetView(renderer->swapChain, renderer->device, renderer->deviceContext,
+                                   &renderer->renderTarget);
             setViewport(width, height, renderer->deviceContext);
         }
     }
@@ -52,7 +55,7 @@ static void setWindowCentered(HWND windowHandle, const MONITORINFO &mi) {
 }
 
 void toggleFullscreen(HWND windowHandle) {
-    MONITORINFO mi = { sizeof(mi) };
+    MONITORINFO mi = {sizeof(mi)};
     HMONITOR hMonitor = MonitorFromWindow(windowHandle, MONITOR_DEFAULTTONEAREST);
     GetMonitorInfo(hMonitor, &mi);
 
@@ -60,8 +63,7 @@ void toggleFullscreen(HWND windowHandle) {
         // Switch to windowed mode
         setWindowCentered(windowHandle, mi);
 
-    }
-    else {
+    } else {
         // Switch to fullscreen mode
         SetWindowLongPtr(windowHandle, GWL_STYLE, WS_VISIBLE | WS_POPUP);
         SetWindowPos(windowHandle, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
@@ -138,7 +140,8 @@ void window_init(Window *window, HINSTANCE instance) {
     SetProp(window->window, CTET_WINDOW_PROP_NAME, window);
     RECT windowClient{};
     GetClientRect(window->window, &windowClient);
-    renderer_init(&window->renderer, window->window, windowClient.right - windowClient.left, windowClient.bottom - windowClient.top);
+    renderer_init(&window->renderer, window->window, windowClient.right - windowClient.left,
+                  windowClient.bottom - windowClient.top);
 }
 
 void window_loop(Window *window, CTetEngine *engine) {
@@ -160,7 +163,11 @@ void window_loop(Window *window, CTetEngine *engine) {
     controlTracker->keyAssign[VK_DOWN] = Control_SOFT_DROP;
     controlTracker->keyAssign[static_cast<int>('C')] = Control_HOLD;
     controlTracker->keyAssign[static_cast<int>('R')] = Control_RETRY;
-    
+
+    FpsCounter *fpsCounter = fpsCounter_create(100);
+    constexpr float TIME_BETWEEN_FPS_UPDATES = 0.5;
+    float timeSinceLastFpsUpdate = TIME_BETWEEN_FPS_UPDATES;
+
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
@@ -175,6 +182,19 @@ void window_loop(Window *window, CTetEngine *engine) {
         QueryPerformanceCounter(&currentTime);
 
         deltaTime = (float) (currentTime.QuadPart - lastTime.QuadPart) / (float) frequency.QuadPart;
+
+        fpsCounter_pushFrameTime(fpsCounter, deltaTime);
+
+        timeSinceLastFpsUpdate += deltaTime;
+        if (timeSinceLastFpsUpdate >= TIME_BETWEEN_FPS_UPDATES) {
+            std::wstringstream ss;
+            ss
+                    << WINDOW_TITLE
+                    << L"; FPS: " << std::fixed << std::setprecision(0) << fpsCounter_getFps(fpsCounter)
+                    << L", FrameTime Millis: " << std::fixed << std::setprecision(10) << fpsCounter_getAverageFrameTime(fpsCounter) * 1000;
+            timeSinceLastFpsUpdate -= TIME_BETWEEN_FPS_UPDATES;
+            SetWindowText(window->window, ss.str().c_str());
+        }
 
         ctEngine_update(engine, deltaTime * 1000);
 
@@ -202,10 +222,12 @@ void window_loop(Window *window, CTetEngine *engine) {
         renderer_drawFrame(&window->renderer, engine, &ctx);
     }
 
+    fpsCounter_destroy(fpsCounter);
+
 }
 
 void window_show(HWND window) {
-    MONITORINFO mi = { sizeof(mi) };
+    MONITORINFO mi = {sizeof(mi)};
     HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
     GetMonitorInfo(hMonitor, &mi);
     setWindowCentered(window, mi);
