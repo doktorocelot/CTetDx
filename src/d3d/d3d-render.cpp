@@ -44,8 +44,6 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
     IDXGISwapChain *swapChain = nullptr;
     ID3D11RenderTargetView *target = nullptr;
 
-    HRESULT r;
-
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
     swapChainDesc.BufferCount = 1;
     swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -60,7 +58,7 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
     createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-    r = D3D11CreateDeviceAndSwapChain(
+    auto r = D3D11CreateDeviceAndSwapChain(
             nullptr,
             D3D_DRIVER_TYPE_HARDWARE,
             nullptr,
