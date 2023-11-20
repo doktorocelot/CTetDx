@@ -204,7 +204,7 @@ void window_loop(Window *window, CTetEngine *engine) {
             ss
                     << WINDOW_TITLE
                     << L";    Updates/Sec: " << std::fixed << std::setprecision(0) << fpsCounter_getFps(fpsCounterUpdate)
-                    << L", FrameTime Millis: " << std::fixed << std::setprecision(10) << fpsCounter_getAverageFrameTime(fpsCounterUpdate) * 1000
+                    << L", FrameTime Millis: " << std::fixed << std::setprecision(7) << fpsCounter_getAverageFrameTime(fpsCounterUpdate) * 1000
                     << L";    FPS: " << std::fixed << std::setprecision(0) << fpsCounter_getFps(fpsCounterDraw);
             timeSinceLastFpsUpdate -= TIME_BETWEEN_FPS_UPDATES;
             SetWindowText(window->window, ss.str().c_str());
