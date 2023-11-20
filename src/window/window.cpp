@@ -24,6 +24,8 @@ static void resizeWindow(WPARAM wparam, LPARAM lparam, Window *window) {
         if (renderer->swapChain != nullptr) {
             WORD width = LOWORD(lparam);
             WORD height = HIWORD(lparam);
+            renderer->deviceContext->ClearState();
+            renderer->deviceContext->Flush();
             renderer->swapChain->ResizeBuffers(
                     1,
                     width,
