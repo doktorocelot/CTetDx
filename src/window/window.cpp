@@ -166,9 +166,17 @@ void window_loop(Window *window, CTetEngine *engine) {
     controlTracker->keyAssign[static_cast<int>('C')] = Control_HOLD;
     controlTracker->keyAssign[static_cast<int>('R')] = Control_RETRY;
 
-    FpsCounter *fpsCounter = fpsCounter_create(100);
+    FpsCounter *fpsCounterUpdate = fpsCounter_create(200);
+    FpsCounter *fpsCounterDraw = fpsCounter_create(50);
+
+    std::locale locale("");
+    const auto& np = std::use_facet<std::numpunct<char>>(locale);
+    
     constexpr float TIME_BETWEEN_FPS_UPDATES = 0.5;
     float timeSinceLastFpsUpdate = TIME_BETWEEN_FPS_UPDATES;
+    
+    constexpr float TIME_BETWEEN_RENDERS = 1.0f / 240;
+    float timeSinceLastRender = 0;
 
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -177,24 +185,27 @@ void window_loop(Window *window, CTetEngine *engine) {
 
             if (msg.message == WM_QUIT) {
                 gameRenderingContext_cleanup(&ctx);
-                fpsCounter_destroy(fpsCounter);
+                fpsCounter_destroy(fpsCounterUpdate);
+                fpsCounter_destroy(fpsCounterDraw);
                 return;
             }
         }
-
+        
         QueryPerformanceCounter(&currentTime);
 
         deltaTime = (float) (currentTime.QuadPart - lastTime.QuadPart) / (float) frequency.QuadPart;
 
-        fpsCounter_pushFrameTime(fpsCounter, deltaTime);
+        fpsCounter_pushFrameTime(fpsCounterUpdate, deltaTime);
 
         timeSinceLastFpsUpdate += deltaTime;
         if (timeSinceLastFpsUpdate >= TIME_BETWEEN_FPS_UPDATES) {
             std::wstringstream ss;
+            ss.imbue(locale);
             ss
                     << WINDOW_TITLE
-                    << L"; FPS: " << std::fixed << std::setprecision(0) << fpsCounter_getFps(fpsCounter)
-                    << L", FrameTime Millis: " << std::fixed << std::setprecision(10) << fpsCounter_getAverageFrameTime(fpsCounter) * 1000;
+                    << L";    Updates/Sec: " << std::fixed << std::setprecision(0) << fpsCounter_getFps(fpsCounterUpdate)
+                    << L", FrameTime Millis: " << std::fixed << std::setprecision(10) << fpsCounter_getAverageFrameTime(fpsCounterUpdate) * 1000
+                    << L";    FPS: " << std::fixed << std::setprecision(0) << fpsCounter_getFps(fpsCounterDraw);
             timeSinceLastFpsUpdate -= TIME_BETWEEN_FPS_UPDATES;
             SetWindowText(window->window, ss.str().c_str());
         }
@@ -222,7 +233,12 @@ void window_loop(Window *window, CTetEngine *engine) {
 
         controlTracker_copyCurrentToPrev(controlTracker);
 
-        renderer_drawFrame(&window->renderer, engine, &ctx);
+        timeSinceLastRender += deltaTime;
+        if (timeSinceLastRender >= TIME_BETWEEN_RENDERS){
+            fpsCounter_pushFrameTime(fpsCounterDraw, timeSinceLastRender);
+            timeSinceLastRender -= TIME_BETWEEN_RENDERS;
+                renderer_drawFrame(&window->renderer, engine, &ctx);
+        }
     }
 
 
