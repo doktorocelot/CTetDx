@@ -150,6 +150,8 @@ void window_loop(Window *window, CTetEngine *engine) {
     MSG msg;
     LARGE_INTEGER frequency, lastTime, currentTime;
     float deltaTime;
+    CTetMessage ctMsg;
+    bool gameIsPlaying = true;
 
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&lastTime);
@@ -170,11 +172,11 @@ void window_loop(Window *window, CTetEngine *engine) {
     FpsCounter *fpsCounterDraw = fpsCounter_create(50);
 
     std::locale locale("");
-    const auto& np = std::use_facet<std::numpunct<char>>(locale);
-    
+    const auto &np = std::use_facet<std::numpunct<char>>(locale);
+
     constexpr float TIME_BETWEEN_FPS_UPDATES = 0.5;
     float timeSinceLastFpsUpdate = TIME_BETWEEN_FPS_UPDATES;
-    
+
     constexpr float TIME_BETWEEN_RENDERS = 1.0f / 240;
     float timeSinceLastRender = 0;
 
@@ -190,7 +192,7 @@ void window_loop(Window *window, CTetEngine *engine) {
                 return;
             }
         }
-        
+
         QueryPerformanceCounter(&currentTime);
 
         deltaTime = (float) (currentTime.QuadPart - lastTime.QuadPart) / (float) frequency.QuadPart;
@@ -203,41 +205,57 @@ void window_loop(Window *window, CTetEngine *engine) {
             ss.imbue(locale);
             ss
                     << WINDOW_TITLE
-                    << L";    Updates/Sec: " << std::fixed << std::setprecision(0) << fpsCounter_getFps(fpsCounterUpdate)
-                    << L", FrameTime Millis: " << std::fixed << std::setprecision(7) << fpsCounter_getAverageFrameTime(fpsCounterUpdate) * 1000
+                    << L";    Updates/Sec: " << std::fixed << std::setprecision(0)
+                    << fpsCounter_getFps(fpsCounterUpdate)
+                    << L", FrameTime Millis: " << std::fixed << std::setprecision(7)
+                    << fpsCounter_getAverageFrameTime(fpsCounterUpdate) * 1000
                     << L";    FPS: " << std::fixed << std::setprecision(0) << fpsCounter_getFps(fpsCounterDraw);
             timeSinceLastFpsUpdate -= TIME_BETWEEN_FPS_UPDATES;
             SetWindowText(window->window, ss.str().c_str());
         }
 
-        ctEngine_update(engine, deltaTime * 1000);
+        if (gameIsPlaying) {
+            ctEngine_update(engine, deltaTime * 1000);
 
-        if (keyPressed(controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftDown(engine);
-        if (keyReleased(controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftUp(engine);
+            if (keyPressed(controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftDown(engine);
+            if (keyReleased(controlTracker, Control_SHIFT_LEFT)) ctEngine_onShiftLeftUp(engine);
 
-        if (keyPressed(controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightDown(engine);
-        if (keyReleased(controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightUp(engine);
+            if (keyPressed(controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightDown(engine);
+            if (keyReleased(controlTracker, Control_SHIFT_RIGHT)) ctEngine_onShiftRightUp(engine);
 
-        if (keyPressed(controlTracker, Control_ROTATE_LEFT)) ctEngine_onRotateLeft(engine);
-        if (keyPressed(controlTracker, Control_ROTATE_RIGHT)) ctEngine_onRotateRight(engine);
+            if (keyPressed(controlTracker, Control_ROTATE_LEFT)) ctEngine_onRotateLeft(engine);
+            if (keyPressed(controlTracker, Control_ROTATE_RIGHT)) ctEngine_onRotateRight(engine);
 
-        if (keyPressed(controlTracker, Control_HARD_DROP)) ctEngine_onHardDrop(engine);
+            if (keyPressed(controlTracker, Control_HARD_DROP)) ctEngine_onHardDrop(engine);
 
-        if (keyPressed(controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropDown(engine);
-        if (keyReleased(controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropUp(engine);
+            if (keyPressed(controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropDown(engine);
+            if (keyReleased(controlTracker, Control_SOFT_DROP)) ctEngine_onSoftDropUp(engine);
 
-        if (keyPressed(controlTracker, Control_RETRY)) ctEngine_reset(engine);
-        if (keyPressed(controlTracker, Control_HOLD)) ctEngine_onHoldDown(engine);
+            if (keyPressed(controlTracker, Control_HOLD)) ctEngine_onHoldDown(engine);
+        }
+        
+        if (keyPressed(controlTracker, Control_RETRY)) {
+            ctEngine_reset(engine);
+            gameIsPlaying = true;
+        }
+
+        while (ctMsg = ctEngine_nextMessage(engine), ctMsg.id != CT_MSG_NONE) {
+            switch (ctMsg.id) {
+                case CT_MSG_GAME_OVER:
+                    gameIsPlaying = false;
+                    break;
+            }
+        }
 
         lastTime = currentTime;
 
         controlTracker_copyCurrentToPrev(controlTracker);
 
         timeSinceLastRender += deltaTime;
-        if (timeSinceLastRender >= TIME_BETWEEN_RENDERS){
+        if (timeSinceLastRender >= TIME_BETWEEN_RENDERS) {
             fpsCounter_pushFrameTime(fpsCounterDraw, timeSinceLastRender);
             timeSinceLastRender -= TIME_BETWEEN_RENDERS;
-                renderer_drawFrame(&window->renderer, engine, &ctx);
+            renderer_drawFrame(&window->renderer, engine, &ctx);
         }
     }
 
