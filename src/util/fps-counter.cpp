@@ -18,14 +18,18 @@ static double sumFrameTimes(const FpsCounter *counter) {
     return frameDeltas;
 }
 
-FpsCounter *fpsCounter_create(int maxHistory) {
+FpsCounter* fpsCounter_create(int maxHistory) {
     size_t size = sizeof(FpsCounter) + maxHistory * sizeof(double);
-    auto *counter = static_cast<FpsCounter *>(malloc(size));
-    if (!counter) die(L"Could not allocate memory for FPS Counter.");
-    counter->length = maxHistory;
-    counter->totalPushed = 0;
-    counter->ptr = 0;
-    return counter;
+    if (auto *counter = static_cast<FpsCounter *>(malloc(size)); !counter) {
+        die(L"Could not allocate memory for FPS Counter.");
+        return nullptr;
+    }
+    else {
+        counter->length = maxHistory;
+        counter->totalPushed = 0;
+        counter->ptr = 0;
+        return counter;
+    }
 }
 
 void fpsCounter_destroy(FpsCounter *counter) {
@@ -47,5 +51,3 @@ double fpsCounter_getAverageFrameTime(FpsCounter *counter) {
     double frameDeltas = sumFrameTimes(counter);
     return frameDeltas / counter->totalPushed;
 }
-
-
