@@ -6,57 +6,81 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(SOURCES
-        src/main.cpp
-        src/window/window.hpp
-        src/window/window.cpp
-        src/d3d/check-result.hpp
-        src/d3d/check-result.cpp
-        src/d3d/d3d-render.hpp
-        src/d3d/d3d-render.cpp
-        src/die.hpp
-        src/die.cpp
-        src/d3d/shader-pair.hpp
-        src/d3d/shader-pair.cpp
-        src/control/control.hpp
-        src/control/control.cpp
-        src/d3d/block-batch.hpp
-        src/d3d/block-batch.cpp
-        src/d3d/game-rendering-context.hpp
-        src/d3d/game-rendering-context.cpp
-        src/d3d/mesh.hpp
-        src/d3d/mesh.cpp
-        src/d3d/frame-mesh.hpp
-        src/d3d/frame-mesh.cpp
-        src/d3d/math-util.hpp
-        src/util/fps-counter.hpp
-        src/util/fps-counter.cpp
+    src/die.hpp
 )
 
-add_executable(CTetDx WIN32 ${SOURCES})
+if (WIN32)
+    set(PLATFORM_SOURCES
+            src/win32_main.cpp
+            src/window/window.hpp
+            src/window/window.cpp
+            src/d3d/check-result.hpp
+            src/d3d/check-result.cpp
+            src/d3d/d3d-render.hpp
+            src/d3d/d3d-render.cpp
+            src/die.hpp
+            src/win32_die.cpp
+            src/d3d/shader-pair.hpp
+            src/d3d/shader-pair.cpp
+            src/control/control.hpp
+            src/control/control.cpp
+            src/d3d/block-batch.hpp
+            src/d3d/block-batch.cpp
+            src/d3d/game-rendering-context.hpp
+            src/d3d/game-rendering-context.cpp
+            src/d3d/mesh.hpp
+            src/d3d/mesh.cpp
+            src/d3d/frame-mesh.hpp
+            src/d3d/frame-mesh.cpp
+            src/d3d/math-util.hpp
+            src/util/fps-counter.hpp
+            src/util/fps-counter.cpp
+    )
+elseif (LINUX)
+    set(PLATFORM_SOURCES
+            src/linux_main.cpp
+            src/linux_die.cpp
+    )
+endif ()
+
+if (WIN32)
+    add_executable(CTetDx WIN32 ${SOURCES} ${PLATFORM_SOURCES})
+elseif (LINUX)
+    add_executable(CTetDx ${SOURCES} ${PLATFORM_SOURCES})
+endif ()
 add_subdirectory(extern/ctet)
 
-target_link_libraries(CTetDx PUBLIC CTet)
-target_link_libraries(CTetDx PUBLIC Shlwapi.lib)
-target_link_libraries(CTetDx PUBLIC d3d11.lib dxguid.lib d3dcompiler.lib)
+
+if (WIN32)
+    target_link_libraries(CTetDx PUBLIC CTet)
+    target_link_libraries(CTetDx PUBLIC Shlwapi.lib)
+    target_link_libraries(CTetDx PUBLIC d3d11.lib dxguid.lib d3dcompiler.lib)
+    if (MSVC)
+        target_compile_options(CTetDx PRIVATE "/utf-8")
+        target_compile_options(CTetDx PRIVATE "/D_UNICODE" "/DUNICODE")
+    endif ()
+elseif (LINUX)
+    find_package(X11 REQUIRED)
+    target_link_libraries(CTetDx PUBLIC CTet ${X11_xcb_LIB})
+    include_directories(${X11_xcb_INCLUDE_PATH})
+endif ()
 
 add_compile_options(-DUNICODE -D_UNICODE)
 
-target_compile_options(CTetDx PRIVATE "/utf-8")
-target_compile_options(CTetDx PRIVATE "/D_UNICODE" "/DUNICODE")
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
     # Configuration for Release mode
     message("Building in Release mode")
     add_custom_target(CopyResources
-            COMMAND ${CMAKE_COMMAND} -E remove_directory 
+            COMMAND ${CMAKE_COMMAND} -E remove_directory
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources
-            
+
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/resources
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources
     )
     add_dependencies(CTetDx CopyResources)
-else()
+else ()
     # Configuration for Debug mode
     add_definitions(-DDEBUG)
     message("Building in Debug mode")
@@ -64,4 +88,4 @@ else()
             TARGET CTetDx
             PRE_BUILD COMMAND ${CMAKE_COMMAND} -E
             create_symlink ${CMAKE_SOURCE_DIR}/resources ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
-endif()
+endif ()
