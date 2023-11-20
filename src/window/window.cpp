@@ -27,11 +27,11 @@ static void resizeWindow(WPARAM wparam, LPARAM lparam, Window *window) {
             renderer->deviceContext->ClearState();
             renderer->deviceContext->Flush();
             renderer->swapChain->ResizeBuffers(
-                    1,
+                    2,
                     width,
                     height,
                     DXGI_FORMAT_R8G8B8A8_UNORM,
-                    0
+                    DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING
             );
 
             renderer->aspectRatioBufferData = {(float) width / (float) height};
