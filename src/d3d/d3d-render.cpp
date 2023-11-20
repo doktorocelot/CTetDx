@@ -91,10 +91,13 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
 }
 
 void renderer_cleanup(Renderer *renderer) {
+    renderer->aspectRatioBuffer->Release();
+    renderer->deviceContext->ClearState();
+    renderer->deviceContext->Flush();
+    renderer->deviceContext->Release();
     renderer->swapChain->Release();
     renderer->renderTarget->Release();
     renderer->device->Release();
-    renderer->deviceContext->Release();
 }
 
 void renderer_drawFrame(Renderer *renderer, CTetEngine *engine, GameRenderingContext *context) {
