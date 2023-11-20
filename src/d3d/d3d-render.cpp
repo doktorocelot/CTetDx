@@ -111,7 +111,8 @@ void renderer_drawFrame(Renderer *renderer, CTetEngine *engine, GameRenderingCon
     mesh_use(&context->blockMesh, renderer->deviceContext);
     mesh_draw(&context->blockMesh, renderer->deviceContext);
 
-    renderer->swapChain->Present(0, 0);
+    const HRESULT r = renderer->swapChain->Present(0, 0);
+    checkResult(r, "SwapChain Present");
 }
 
 void renderer_setAspectRatio(Renderer *renderer) {
