@@ -1,12 +1,19 @@
 #include <d3dcompiler.h>
 #include "shader-pair.hpp"
 #include "check-result.hpp"
+#include "../die.hpp"
 #include <Shlwapi.h>
 #include <string>
+#include <fstream>
 
 static void setDirectoryPath(WCHAR *directoryPath, int size) {
     GetModuleFileName(nullptr, directoryPath, size);
     PathRemoveFileSpec(directoryPath);
+}
+
+static bool fileExists(const wchar_t *filePath) {
+    std::ifstream file(filePath);
+    return file.is_open();
 }
 
 static HRESULT compileShader(
@@ -22,7 +29,13 @@ static HRESULT compileShader(
     
     HRESULT result = S_OK;
 
+    if (!fileExists(completeFilePath.c_str())) {
+        std::wstring errorMessage = L"Could not load shader file: " + std::wstring(completeFilePath);
+        die(errorMessage.c_str());
+    }
+    
     ID3DBlob *errorBlob = nullptr;
+    
     result = D3DCompileFromFile(
             completeFilePath.c_str(),
             nullptr,
