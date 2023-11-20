@@ -47,14 +47,12 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
     HRESULT r;
 
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-    swapChainDesc.BufferCount = 2;
+    swapChainDesc.BufferCount = 1;
     swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapChainDesc.OutputWindow = window;
     swapChainDesc.SampleDesc.Count = 1;
     swapChainDesc.Windowed = TRUE;
-//    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-//    swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
     UINT createDeviceFlags = 0;
     
@@ -114,7 +112,6 @@ void renderer_drawFrame(Renderer *renderer, CTetEngine *engine, GameRenderingCon
     mesh_draw(&context->blockMesh, renderer->deviceContext);
 
     renderer->swapChain->Present(0, 0);
-//    renderer->deviceContext->OMSetRenderTargets(1, &renderer->renderTarget, nullptr);
 }
 
 void renderer_setAspectRatio(Renderer *renderer) {
