@@ -177,6 +177,7 @@ void window_loop(Window *window, CTetEngine *engine) {
 
             if (msg.message == WM_QUIT) {
                 gameRenderingContext_cleanup(&ctx);
+                fpsCounter_destroy(fpsCounter);
                 return;
             }
         }
@@ -224,7 +225,6 @@ void window_loop(Window *window, CTetEngine *engine) {
         renderer_drawFrame(&window->renderer, engine, &ctx);
     }
 
-    fpsCounter_destroy(fpsCounter);
 
 }
 
