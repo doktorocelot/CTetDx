@@ -22,8 +22,8 @@ void setViewport(int width, int height, ID3D11DeviceContext *deviceContext) {
     D3D11_VIEWPORT viewport = {
             .TopLeftX = 0,
             .TopLeftY = 0,
-            .Width = (float) width,
-            .Height = (float) height,
+            .Width = static_cast<float>(width),
+            .Height = static_cast<float>(height),
     };
     deviceContext->RSSetViewports(1, &viewport);
 }
