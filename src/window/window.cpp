@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <sstream>
 #include "window.hpp"
+#include "../d3d/check-result.hpp"
 #include "../die.hpp"
 #include "../util/fps-counter.hpp"
 
@@ -26,13 +27,14 @@ static void resizeWindow(WPARAM wparam, LPARAM lparam, Window *window) {
             WORD height = HIWORD(lparam);
             renderer->deviceContext->ClearState();
             renderer->deviceContext->Flush();
-            renderer->swapChain->ResizeBuffers(
+            const HRESULT r = renderer->swapChain->ResizeBuffers(
                     2,
                     width,
                     height,
                     DXGI_FORMAT_R8G8B8A8_UNORM,
                     0
             );
+            checkResult(r, "SwapChain Resize Buffers");
 
             renderer->aspectRatioBufferData = {(float) width / (float) height};
             renderer_setAspectRatio(renderer);
