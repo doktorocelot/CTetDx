@@ -39,7 +39,7 @@ void fpsCounter_destroy(FpsCounter *counter) {
 void fpsCounter_pushFrameTime(FpsCounter *counter, double frameTime) {
     counter->frameTimes[counter->ptr++] = frameTime;
     counter->ptr %= counter->length;
-    counter->totalPushed = std::min(counter->totalPushed + 1, counter->length); 
+    counter->totalPushed = std::min(counter->totalPushed + 1, counter->length);
 }
 
 double fpsCounter_getFps(FpsCounter *counter) {
