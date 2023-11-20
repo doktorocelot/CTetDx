@@ -80,7 +80,7 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
 
     setViewport(width, height, deviceContext);
 
-    renderer->aspectRatioBufferData = {(float) width / (float) height};
+    renderer->aspectRatioBufferData = {static_cast<float>(width) / static_cast<float>(height)};
 
     renderer->swapChain = swapChain;
     renderer->renderTarget = target;
