@@ -4,6 +4,8 @@
 #include "block-batch.hpp"
 #include "math-util.hpp"
 
+static constexpr DirectX::XMFLOAT3 LOCK_FLASH_COLOR = DirectX::XMFLOAT3(1, 1, 1);
+
 static DirectX::XMFLOAT3 colors[]{
         DirectX::XMFLOAT3(0, 0, 0),
         DirectX::XMFLOAT3(0.93, 0.16, 0.22),
@@ -29,15 +31,23 @@ void setBlockColor(BlockGroup *group, CTetBlockColor color) {
     }
 }
 
-void setBlockEnabled(BlockGroup *group, bool enabled) {
-    for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
-        group->vertices[i].enabled = enabled;
-    }
-}
-
 void setBlockBrightness(BlockGroup *group, float brightness) {
     for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
         group->vertices[i].brightness = brightness;
+    }
+}
+
+void setBlockLockflash(BlockGroup *group) {
+    constexpr auto colorVal = LOCK_FLASH_COLOR;
+    for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
+        group->vertices[i].color = colorVal;
+    }
+    setBlockBrightness(group, 1);
+}
+
+void setBlockEnabled(BlockGroup *group, bool enabled) {
+    for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
+        group->vertices[i].enabled = enabled;
     }
 }
 
@@ -134,18 +144,22 @@ void blockBatch_setupHold(CTetEngine *engine, BlockBatch *batch) {
         setBlockColor(&batch->holdPiece[i], heldPiece.blocks[i].color);
     }
 }
-
+static constexpr int LOCK_FLASH_TIMER = 35;
 void blockBatch_setupField(CTetEngine *engine, BlockBatch *batch) {
     for (int y = 0; y < CT_TOTAL_FIELD_HEIGHT; y++) {
         for (int x = 0; x < CT_FIELD_WIDTH; x++) {
-            CTetBlockColor color = ctEngine_getBlockAtFieldLocation(engine, {x, y})->color;
-            if (color == CTetBlockColor_NONE) {
+            const auto block = ctEngine_getBlockAtFieldLocation(engine, {x, y});
+            if (block->color == CTetBlockColor_NONE) {
                 setBlockEnabled(&batch->field[y][x], false);
                 continue;
             }
-            setBlockBrightness(&batch->field[y][x], 0.8f);
             setBlockEnabled(&batch->field[y][x], true);
-            setBlockColor(&batch->field[y][x], color);
+            if (ctEngine_getTimestamp(engine) - block->lockedTimestamp < LOCK_FLASH_TIMER) {
+                setBlockLockflash(&batch->field[y][x]);
+            } else {
+                setBlockBrightness(&batch->field[y][x], 0.8f);
+                setBlockColor(&batch->field[y][x], block->color);    
+            }
         }
     }
 }
