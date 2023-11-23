@@ -20,7 +20,7 @@ static void resizeWindow(const WPARAM wparam, const LPARAM lparam, const Win32Wi
     window->gfxFns->resize(window->gfx, LOWORD(lparam), HIWORD(lparam), isMinimized);
 }
 
-static void setWindowCentered(HWND windowHandle, const MONITORINFO &mi) {
+static void setWindowCentered(HWND windowHandle, const MONITORINFO&mi) {
     RECT windowRect;
     windowRect.left = (mi.rcMonitor.right - mi.rcMonitor.left - WINDOW_WIDTH) / 2 + mi.rcMonitor.left;
     windowRect.top = (mi.rcMonitor.bottom - mi.rcMonitor.top - WINDOW_HEIGHT) / 2 + mi.rcMonitor.top;
@@ -40,8 +40,8 @@ static void toggleFullscreen(HWND windowHandle) {
     if (GetWindowLongPtr(windowHandle, GWL_STYLE) & WS_POPUP) {
         // Switch to windowed mode
         setWindowCentered(windowHandle, mi);
-
-    } else {
+    }
+    else {
         // Switch to fullscreen mode
         SetWindowLongPtr(windowHandle, GWL_STYLE, WS_VISIBLE | WS_POPUP);
         SetWindowPos(windowHandle, HWND_TOP, mi.rcMonitor.left, mi.rcMonitor.top,
@@ -91,23 +91,23 @@ void win32Window_init(Win32Window *window, HINSTANCE instance) {
     window->className = L"MainWindowClass";
 
     WNDCLASSEX wc = {
-            .cbSize = sizeof(WNDCLASSEX),
-            .lpfnWndProc = windowProcedure,
-            .hInstance = instance,
-            .hbrBackground = (HBRUSH) (COLOR_BACKGROUND),
-            .lpszClassName = window->className,
+        .cbSize = sizeof(WNDCLASSEX),
+        .lpfnWndProc = windowProcedure,
+        .hInstance = instance,
+        .hbrBackground = (HBRUSH)(COLOR_BACKGROUND),
+        .lpszClassName = window->className,
     };
     RegisterClassEx(&wc);
 
     window->instance = instance;
 
     window->window = CreateWindowEx(
-            0,
-            window->className,
-            WINDOW_TITLE,
-            WS_OVERLAPPEDWINDOW,
-            CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
-            nullptr, nullptr, instance, nullptr
+        0,
+        window->className,
+        WINDOW_TITLE,
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
+        nullptr, nullptr, instance, nullptr
     );
 
     if (window->window == nullptr) {
@@ -118,8 +118,11 @@ void win32Window_init(Win32Window *window, HINSTANCE instance) {
     SetProp(window->window, CTET_WINDOW_PROP_NAME, window);
     RECT windowClient{};
     GetClientRect(window->window, &windowClient);
-    window->gfx = d3d11gfx_win32_create(&window->gfxFns, window->window, windowClient.right - windowClient.left,
-                                        windowClient.bottom - windowClient.top);
+    window->gfx = d3d11gfx_win32_create(
+        &window->gfxFns, window->window,
+        windowClient.right - windowClient.left,
+        windowClient.bottom - windowClient.top
+    );
 }
 
 void win32Window_loop(Win32Window *window, CTetEngine *engine) {
@@ -131,7 +134,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
 
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&lastTime);
-    
+
     ControlTracker *controlTracker = &window->controlTracker;
     controlTracker->keyAssign[VK_LEFT] = Control_SHIFT_LEFT;
     controlTracker->keyAssign[VK_RIGHT] = Control_SHIFT_RIGHT;
@@ -167,7 +170,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
 
         QueryPerformanceCounter(&currentTime);
 
-        deltaTime = (float) (currentTime.QuadPart - lastTime.QuadPart) / (float) frequency.QuadPart;
+        deltaTime = (float)(currentTime.QuadPart - lastTime.QuadPart) / (float)frequency.QuadPart;
 
         fpsCounter_pushFrameTime(fpsCounterUpdate, deltaTime);
 
@@ -205,7 +208,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
 
             if (keyPressed(controlTracker, Control_HOLD)) ctEngine_onHoldDown(engine);
         }
-        
+
         if (keyPressed(controlTracker, Control_RETRY)) {
             ctEngine_reset(engine);
             gameIsPlaying = true;
@@ -230,8 +233,6 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
             window->gfxFns->drawFrame(window->gfx, engine);
         }
     }
-
-
 }
 
 void win32Window_show(HWND window) {
