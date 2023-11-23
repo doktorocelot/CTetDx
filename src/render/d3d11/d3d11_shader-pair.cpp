@@ -1,15 +1,11 @@
 #include <d3dcompiler.h>
 #include "d3d11_shader-pair.hpp"
 #include "../../win32/win32_check-result.hpp"
-#include "..\..\win32\win32_kill-program.hpp"
+#include "../../win32/win32_complete-file-path.hpp"
+#include "../../win32/win32_kill-program.hpp"
 #include <Shlwapi.h>
 #include <string>
 #include <fstream>
-
-static void setDirectoryPath(WCHAR *directoryPath, int size) {
-    GetModuleFileName(nullptr, directoryPath, size);
-    PathRemoveFileSpec(directoryPath);
-}
 
 static bool fileExists(const wchar_t *filePath) {
     std::ifstream file(filePath);
@@ -21,12 +17,8 @@ static HRESULT compileShader(
     LPCSTR shaderModel,
     ID3DBlob **shaderBlobOut
 ) {
-    WCHAR directoryPath[MAX_PATH];
-    setDirectoryPath(directoryPath, MAX_PATH);
-    std::wstring completeFilePath = directoryPath;
-    completeFilePath.append(L"\\");
-    completeFilePath.append(filePath);
-
+    std::wstring completeFilePath;
+    setCompleteFilePath(&completeFilePath, filePath);
     HRESULT result = S_OK;
 
     if (!fileExists(completeFilePath.c_str())) {

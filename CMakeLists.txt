@@ -12,6 +12,8 @@ set(WIN32_SOURCES
         src/win32/win32_window.hpp src/win32/win32_window.cpp
         src/win32/win32_check-result.hpp src/win32/win32_check-result.cpp
         src/win32/win32_kill-program.hpp src/win32/win32_kill-program.cpp
+        src/win32/win32_complete-file-path.hpp src/win32/win32_complete-file-path.cpp
+
 )
 
 # Sources to interact with directx11
