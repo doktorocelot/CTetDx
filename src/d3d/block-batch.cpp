@@ -1,31 +1,30 @@
 #include "d3d-render.hpp"
-#include "check-result.hpp"
 #include "game-rendering-context.hpp"
 #include "block-batch.hpp"
 #include "math-util.hpp"
 
-static constexpr DirectX::XMFLOAT3 LOCK_FLASH_COLOR = DirectX::XMFLOAT3(1, 1, 1);
-static constexpr DirectX::XMFLOAT3 HOLD_LOCKED_COLOR = DirectX::XMFLOAT3(0.5, 0.5, 0.5);
+static constexpr Vector3 LOCK_FLASH_COLOR = {1, 1, 1};
+static constexpr Vector3 HOLD_LOCKED_COLOR = {0.5, 0.5, 0.5};
 
-static DirectX::XMFLOAT3 colors[]{
-        DirectX::XMFLOAT3(0, 0, 0),
-        DirectX::XMFLOAT3(0.93, 0.16, 0.22),
-        DirectX::XMFLOAT3(1, 0.47, 0),
-        DirectX::XMFLOAT3(1, 0.79, 0),
-        DirectX::XMFLOAT3(0.41, 0.75, 0.16),
-        DirectX::XMFLOAT3(0, 0.62, 0.85),
-        DirectX::XMFLOAT3(0, 0.39, 0.74),
-        DirectX::XMFLOAT3(0.59, 0.18, 0.6),
+static Vector3 colors[]{
+        {0, 0, 0},
+        {0.93, 0.16, 0.22},
+        {1, 0.47, 0},
+        {1, 0.79, 0},
+        {0.41, 0.75, 0.16},
+        {0, 0.62, 0.85},
+        {0, 0.39, 0.74},
+        {0.59, 0.18, 0.6},
 };
 
-static void setBlockVertices(BlockGroup *group, DirectX::XMFLOAT2 position) {
-    group->vertices[0].position = DirectX::XMFLOAT2(position.x, position.y);
-    group->vertices[1].position = DirectX::XMFLOAT2(position.x + 1, position.y);
-    group->vertices[2].position = DirectX::XMFLOAT2(position.x, position.y + 1);
-    group->vertices[3].position = DirectX::XMFLOAT2(position.x + 1, position.y + 1);
+static void setBlockVertices(BlockGroup *group, const Vector2 position) {
+    group->vertices[0].position = position;
+    group->vertices[1].position = vector2_addToNew(position, {1, 0});
+    group->vertices[2].position = vector2_addToNew(position, {0, 1});
+    group->vertices[3].position = vector2_addToNew(position, {1, 1});
 }
 
-static void setBlockColor(BlockGroup *group, const DirectX::XMFLOAT3 colorValue) {
+static void setBlockColor(BlockGroup *group, const Vector3 colorValue) {
     for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
         group->vertices[i].color = colorValue;
     }
@@ -172,8 +171,8 @@ void blockBatch_setupField(CTetEngine *engine, BlockBatch *batch) {
 void blockBatch_initFieldPositions(BlockBatch *batch) {
     for (int y = 0; y < CT_TOTAL_FIELD_HEIGHT; y++) {
         for (int x = 0; x < CT_FIELD_WIDTH; x++) {
-            auto coords = ctPoint_addToNew(GAME_FIELD_OFFSET, {x, y});
-            setBlockVertices(&batch->field[y][x], ctPointToDx(coords));
+            const auto coords = ctPoint_addToNew(GAME_FIELD_OFFSET, {x, y});
+            setBlockVertices(&batch->field[y][x], vector2_fromCtPoint(coords));
         }
     }
 }

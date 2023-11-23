@@ -30,6 +30,7 @@ set(SOURCES
         src/d3d/math-util.hpp
         src/util/fps-counter.hpp
         src/util/fps-counter.cpp
+        src/math/math.hpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES})

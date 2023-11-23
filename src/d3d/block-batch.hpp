@@ -3,15 +3,16 @@
 #include <DirectXMath.h>
 #include <ctet/ctet.h>
 #include "mesh.hpp"
+#include "../math/math.hpp"
 
 static constexpr int PIECE_BLOCK_COUNT = 4;
 static constexpr int BLOCK_VERTEX_COUNT = 4;
 
 struct BlockVertex {
-    DirectX::XMFLOAT2 position;
+    Vector2 position;
     float brightness;
     bool enabled;
-    DirectX::XMFLOAT3 color;
+    Vector3 color;
 };
 
 struct BlockGroup {
