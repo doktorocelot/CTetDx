@@ -5,6 +5,7 @@
 #include "math-util.hpp"
 
 static constexpr DirectX::XMFLOAT3 LOCK_FLASH_COLOR = DirectX::XMFLOAT3(1, 1, 1);
+static constexpr DirectX::XMFLOAT3 HOLD_LOCKED_COLOR = DirectX::XMFLOAT3(0.5, 0.5, 0.5);
 
 static DirectX::XMFLOAT3 colors[]{
         DirectX::XMFLOAT3(0, 0, 0),
@@ -24,25 +25,21 @@ void setBlockVertices(BlockGroup *group, DirectX::XMFLOAT2 position) {
     group->vertices[3].position = DirectX::XMFLOAT2(position.x + 1, position.y + 1);
 }
 
-void setBlockColor(BlockGroup *group, CTetBlockColor color) {
-    auto colorVal = colors[color];
+void setBlockColor(BlockGroup *group, const DirectX::XMFLOAT3 colorValue) {
     for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
-        group->vertices[i].color = colorVal;
+        group->vertices[i].color = colorValue;
     }
+}
+
+void setBlockColorWithCTetColor(BlockGroup *group, const CTetBlockColor color) {
+    const auto colorVal = colors[color];
+    setBlockColor(group, colorVal);
 }
 
 void setBlockBrightness(BlockGroup *group, float brightness) {
     for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
         group->vertices[i].brightness = brightness;
     }
-}
-
-void setBlockLockflash(BlockGroup *group) {
-    constexpr auto colorVal = LOCK_FLASH_COLOR;
-    for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
-        group->vertices[i].color = colorVal;
-    }
-    setBlockBrightness(group, 1);
 }
 
 void setBlockEnabled(BlockGroup *group, bool enabled) {
@@ -92,7 +89,7 @@ void blockBatch_setupActive(CTetEngine *engine, BlockBatch *batch) {
         CTetPoint coords = ctPoint_addToNew(pieceOffset, piece->coords[i]);
         ctPoint_add(&coords, ghostPieceOffset);
 
-        setBlockColor(&batch->field[coords.y][coords.x], piece->blocks[i].color);
+        setBlockColorWithCTetColor(&batch->field[coords.y][coords.x], piece->blocks[i].color);
         setBlockEnabled(&batch->field[coords.y][coords.x], true);
         setBlockBrightness(&batch->field[coords.y][coords.x], 0.4f);
     }
@@ -100,7 +97,7 @@ void blockBatch_setupActive(CTetEngine *engine, BlockBatch *batch) {
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
         CTetPoint coords = ctPoint_addToNew(pieceOffset, piece->coords[i]);
 
-        setBlockColor(&batch->field[coords.y][coords.x], piece->blocks[i].color);
+        setBlockColorWithCTetColor(&batch->field[coords.y][coords.x], piece->blocks[i].color);
         setBlockEnabled(&batch->field[coords.y][coords.x], true);
         constexpr float ratio = 0.7f;
         float brightness = 1 - (1 - ctEngine_getLockDelayRemainingPercentage(engine)) * ratio;
@@ -121,7 +118,7 @@ void blockBatch_setupNext(CTetEngine *engine, BlockBatch *batch) {
             setBlockVertices(&batch->nextPieces[i][j],
                              {coordsDx.x + nextPieceOffset.x, coordsDx.y + nextPieceOffset.y});
             setBlockBrightness(&batch->nextPieces[i][j], 1);
-            setBlockColor(&batch->nextPieces[i][j], piece.blocks[j].color);
+            setBlockColorWithCTetColor(&batch->nextPieces[i][j], piece.blocks[j].color);
         }
         ctPoint_add(&nextOffset, nextAdvance);
     }
@@ -132,16 +129,23 @@ void blockBatch_setupHold(CTetEngine *engine, BlockBatch *batch) {
     CTetPiece heldPiece = *ctEngine_getHeldPiece(engine);
 
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
+        const auto holdBlockGroup = &batch->holdPiece[i];
+        
         if (heldPiece.type == CTetPieceType_NONE) {
-            setBlockEnabled(&batch->holdPiece[i], false);
+            setBlockEnabled(holdBlockGroup, false);
             continue;
         }
+        
         auto coordsDx = ctPointToDx(ctPoint_addToNew(holdOffset, heldPiece.coords[i]));
         auto offset = realGetPieceQueueOffset(heldPiece.type);
-        setBlockVertices(&batch->holdPiece[i], {coordsDx.x + offset.x - 1.0f, coordsDx.y + offset.y});
-        setBlockBrightness(&batch->holdPiece[i], 1);
-        setBlockEnabled(&batch->holdPiece[i], true);
-        setBlockColor(&batch->holdPiece[i], heldPiece.blocks[i].color);
+        setBlockVertices(holdBlockGroup, {coordsDx.x + offset.x - 1.0f, coordsDx.y + offset.y});
+        setBlockBrightness(holdBlockGroup, 1);
+        setBlockEnabled(holdBlockGroup, true);
+        if (ctEngine_holdIsLocked(engine)) {
+            setBlockColor(holdBlockGroup, HOLD_LOCKED_COLOR);
+        } else {
+            setBlockColorWithCTetColor(holdBlockGroup, heldPiece.blocks[i].color);
+        }
     }
 }
 static constexpr int LOCK_FLASH_TIMER = 35;
@@ -155,10 +159,11 @@ void blockBatch_setupField(CTetEngine *engine, BlockBatch *batch) {
             }
             setBlockEnabled(&batch->field[y][x], true);
             if (ctEngine_getTimestamp(engine) - block->lockedTimestamp < LOCK_FLASH_TIMER) {
-                setBlockLockflash(&batch->field[y][x]);
+                setBlockBrightness(&batch->field[y][x], 1);
+                setBlockColor(&batch->field[y][x], LOCK_FLASH_COLOR);
             } else {
                 setBlockBrightness(&batch->field[y][x], 0.8f);
-                setBlockColor(&batch->field[y][x], block->color);    
+                setBlockColorWithCTetColor(&batch->field[y][x], block->color);    
             }
         }
     }
