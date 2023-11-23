@@ -3,14 +3,13 @@
 #include <windows.h>
 #include <ctet/ctet.h>
 #include "../control/control.hpp"
-#include "../render/gfx.hpp"
+#include "../render/d3d11/d3d11_renderer.hpp"
 
 struct Win32Window {
     HINSTANCE instance;
     LPCWSTR className;
     HWND window;
-    Gfx *gfx;
-    const GfxFunctions *gfxFns;
+    D3d11Renderer d3d11Renderer;
     ControlTracker controlTracker;
 };
 

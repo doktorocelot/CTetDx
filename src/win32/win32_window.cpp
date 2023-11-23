@@ -8,16 +8,14 @@
 #include <iostream>
 #include <iomanip>
 
-#include "../render/d3d11_gfx.hpp"
-
 #define WINDOW_TITLE L"CTetDx"
 #define WINDOW_WIDTH  720
 #define WINDOW_HEIGHT 720
 #define CTET_WINDOW_PROP_NAME L"CTetDx"
 
-static void resizeWindow(const WPARAM wparam, const LPARAM lparam, const Win32Window *window) {
+static void resizeWindow(const WPARAM wparam, const LPARAM lparam, Win32Window *window) {
     const bool isMinimized = wparam != SIZE_MINIMIZED;
-    window->gfxFns->resize(window->gfx, LOWORD(lparam), HIWORD(lparam), isMinimized);
+    d3d11Renderer_resize(&window->d3d11Renderer, LOWORD(lparam), HIWORD(lparam), isMinimized);
 }
 
 static void setWindowCentered(HWND windowHandle, const MONITORINFO&mi) {
@@ -118,11 +116,9 @@ void win32Window_init(Win32Window *window, HINSTANCE instance) {
     SetProp(window->window, CTET_WINDOW_PROP_NAME, window);
     RECT windowClient{};
     GetClientRect(window->window, &windowClient);
-    window->gfx = d3d11gfx_win32_create(
-        &window->gfxFns, window->window,
+    d3d11Renderer_init(&window->d3d11Renderer, window->window,
         windowClient.right - windowClient.left,
-        windowClient.bottom - windowClient.top
-    );
+        windowClient.bottom - windowClient.top);
 }
 
 void win32Window_loop(Win32Window *window, CTetEngine *engine) {
@@ -150,6 +146,9 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
 
     std::locale locale("");
 
+    D3d11EngineRenderingCtx ctx {};
+    d3d11EngineRenderingCtx_init(&ctx, window->d3d11Renderer.device, window->d3d11Renderer.aspectRatioBuffer);
+
     constexpr float TIME_BETWEEN_FPS_UPDATES = 0.5;
     float timeSinceLastFpsUpdate = TIME_BETWEEN_FPS_UPDATES;
 
@@ -164,6 +163,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
             if (msg.message == WM_QUIT) {
                 fpsCounter_destroy(fpsCounterUpdate);
                 fpsCounter_destroy(fpsCounterDraw);
+                d3d11EngineRenderingCtx_cleanup(&ctx);
                 return;
             }
         }
@@ -230,7 +230,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
         if (timeSinceLastRender >= TIME_BETWEEN_RENDERS) {
             fpsCounter_pushFrameTime(fpsCounterDraw, timeSinceLastRender);
             timeSinceLastRender -= TIME_BETWEEN_RENDERS;
-            window->gfxFns->drawFrame(window->gfx, engine);
+            d3d11Renderer_drawFrame(&window->d3d11Renderer, engine, &ctx);
         }
     }
 }
@@ -245,7 +245,7 @@ void win32Window_show(HWND window) {
 }
 
 void win32Window_cleanup(Win32Window *window) {
-    window->gfxFns->cleanup(window->gfx);
+    d3d11Renderer_cleanup(&window->d3d11Renderer);
     unregisterClassFromWindow(window);
     DestroyWindow(window->window);
 }

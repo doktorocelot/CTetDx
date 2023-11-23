@@ -18,7 +18,6 @@ set(WIN32_SOURCES
 
 # Sources to interact with directx11
 set(DIRECTX11_SOURCES
-        src/render/d3d11_gfx.hpp src/render/d3d11_gfx.cpp
         src/render/d3d11/d3d11_renderer.hpp src/render/d3d11/d3d11_renderer.cpp
         src/render/d3d11/d3d11_shader-pair.hpp src/render/d3d11/d3d11_shader-pair.cpp
         src/render/d3d11/d3d11_engine-rendering-context.hpp src/render/d3d11/d3d11_engine-rendering-context.cpp
@@ -39,7 +38,6 @@ set(SOURCES
         src/math/vector2.hpp
         src/math/vector3.hpp
         src/math/vector2-cross-ctet.hpp
-        src/render/gfx.hpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES} ${PLATFORM_SOURCES})
