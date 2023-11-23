@@ -1,24 +1,24 @@
-#include "game-rendering-context.hpp"
-#include "d3d-render.hpp"
-#include "check-result.hpp"
-#include "mesh.hpp"
+#include "d3d11_engine-rendering-context.hpp"
+#include "d3d11_renderer.hpp"
+#include "../../win32/win32_check-result.hpp"
+#include "d3d11_mesh.hpp"
 
 
-void createRenderTargetView(IDXGISwapChain *swapChain, ID3D11Device *device, ID3D11DeviceContext *deviceContext,
-                            ID3D11RenderTargetView **target) {
+void d3d11_createRenderTargetView(IDXGISwapChain *swapChain, ID3D11Device *device, ID3D11DeviceContext *deviceContext,
+                                  ID3D11RenderTargetView **target) {
     ID3D11Texture2D *backBuffer = nullptr;
     HRESULT r;
     r = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&backBuffer));
-    checkResult(r, "SwapChain GetBuffer");
+    win32_checkResult(r, "SwapChain GetBuffer");
     r = device->CreateRenderTargetView(backBuffer, nullptr, target);
-    checkResult(r, "Device CreateRenderTargetView");
+    win32_checkResult(r, "Device CreateRenderTargetView");
     backBuffer->Release();
 
     deviceContext->OMSetRenderTargets(1, target, nullptr);
 }
 
 
-void setViewport(int width, int height, ID3D11DeviceContext *deviceContext) {
+void d3d11_setViewport(int width, int height, ID3D11DeviceContext *deviceContext) {
     D3D11_VIEWPORT viewport = {
             .TopLeftX = 0,
             .TopLeftY = 0,
@@ -28,8 +28,8 @@ void setViewport(int width, int height, ID3D11DeviceContext *deviceContext) {
     deviceContext->RSSetViewports(1, &viewport);
 }
 
-static void createAspectRatioBuffer(Renderer *renderer) {
-    createBuffer(renderer->device, &renderer->aspectRatioBufferData, &renderer->aspectRatioBuffer, {
+static void createAspectRatioBuffer(D3d11Renderer *renderer) {
+    d3d11_createBuffer(renderer->device, &renderer->aspectRatioBufferData, &renderer->aspectRatioBuffer, {
             .ByteWidth = sizeof(AspectConstantBuffer),
             .Usage = D3D11_USAGE_DYNAMIC,
             .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
@@ -38,7 +38,7 @@ static void createAspectRatioBuffer(Renderer *renderer) {
     });
 }
 
-void renderer_init(Renderer *renderer, HWND window, int width, int height) {
+void d3d11Renderer_init(D3d11Renderer *renderer, HWND window, int width, int height) {
     ID3D11Device *device = nullptr;
     ID3D11DeviceContext *deviceContext = nullptr;
     IDXGISwapChain *swapChain = nullptr;
@@ -72,11 +72,11 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
             nullptr,
             &deviceContext
     );
-    checkResult(r, "CreateDeviceAndSwapChain");
+    win32_checkResult(r, "CreateDeviceAndSwapChain");
 
-    createRenderTargetView(swapChain, device, deviceContext, &target);
+    d3d11_createRenderTargetView(swapChain, device, deviceContext, &target);
 
-    setViewport(width, height, deviceContext);
+    d3d11_setViewport(width, height, deviceContext);
 
     renderer->aspectRatioBufferData = {static_cast<float>(width) / static_cast<float>(height)};
 
@@ -88,7 +88,7 @@ void renderer_init(Renderer *renderer, HWND window, int width, int height) {
     createAspectRatioBuffer(renderer);
 }
 
-void renderer_cleanup(Renderer *renderer) {
+void d3d11Renderer_cleanup(D3d11Renderer *renderer) {
     renderer->aspectRatioBuffer->Release();
     renderer->deviceContext->ClearState();
     renderer->deviceContext->Flush();
@@ -98,22 +98,22 @@ void renderer_cleanup(Renderer *renderer) {
     renderer->device->Release();
 }
 
-void renderer_drawFrame(Renderer *renderer, CTetEngine *engine, GameRenderingContext *context) {
+void d3d11Renderer_drawFrame(D3d11Renderer *renderer, CTetEngine *engine, D3d11EngineRenderingCtx *context) {
     float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
     renderer->deviceContext->ClearRenderTargetView(renderer->renderTarget, clearColor);
 
     mesh_use(&context->frameMesh, renderer->deviceContext);
     mesh_draw(&context->frameMesh, renderer->deviceContext);
 
-    updateBlockBatch(&context->blockBatch, &context->blockMesh, engine, renderer->deviceContext);
+    updateBlockBatchInMesh(&context->blockBatch, &context->blockMesh, engine, renderer->deviceContext);
     mesh_use(&context->blockMesh, renderer->deviceContext);
     mesh_draw(&context->blockMesh, renderer->deviceContext);
 
     const HRESULT r = renderer->swapChain->Present(0, 0);
-    checkResult(r, "SwapChain Present");
+    win32_checkResult(r, "SwapChain Present");
 }
 
-void renderer_setAspectRatio(Renderer *renderer) {
+void d3d11Renderer_setAspectRatio(D3d11Renderer *renderer) {
     D3D11_MAPPED_SUBRESOURCE mappedAspect;
     ID3D11Resource *aspectRatioBuffer = renderer->aspectRatioBuffer;
     renderer->deviceContext->Map(aspectRatioBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedAspect);
@@ -123,13 +123,41 @@ void renderer_setAspectRatio(Renderer *renderer) {
     renderer->deviceContext->Unmap(aspectRatioBuffer, 0);
 }
 
+void d3d11Renderer_resize(D3d11Renderer *renderer, int width, int height, bool isMinimized) {
+    if (renderer->device != nullptr && isMinimized) {
+        if (renderer->renderTarget != nullptr) {
+            renderer->renderTarget->Release();
+            renderer->renderTarget = nullptr;
+        }
 
-void createBuffer(ID3D11Device *device, const void *initData, ID3D11Buffer **destBuffer,
+        if (renderer->swapChain != nullptr) {
+            renderer->deviceContext->ClearState();
+            renderer->deviceContext->Flush();
+            const HRESULT r = renderer->swapChain->ResizeBuffers(
+                2,
+                width,
+                height,
+                DXGI_FORMAT_R8G8B8A8_UNORM,
+                0
+            );
+            win32_checkResult(r, "SwapChain Resize Buffers");
+
+            renderer->aspectRatioBufferData = {static_cast<float>(width) / static_cast<float>(height)};
+            d3d11Renderer_setAspectRatio(renderer);
+
+            d3d11_createRenderTargetView(renderer->swapChain, renderer->device, renderer->deviceContext,
+                                         &renderer->renderTarget);
+            d3d11_setViewport(width, height, renderer->deviceContext);
+        }
+    }
+}
+
+void d3d11_createBuffer(ID3D11Device *device, const void *initData, ID3D11Buffer **destBuffer,
                   D3D11_BUFFER_DESC bufferDesc) {// Setup buffer desc
     D3D11_SUBRESOURCE_DATA initDataDescriptor = {};
 
     initDataDescriptor.pSysMem = initData;
 
     const HRESULT r = device->CreateBuffer(&bufferDesc, &initDataDescriptor, destBuffer);
-    checkResult(r, "CreateBuffer");
+    win32_checkResult(r, "CreateBuffer");
 }

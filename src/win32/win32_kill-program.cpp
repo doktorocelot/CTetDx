@@ -1,9 +1,9 @@
 #include <iostream>
 #include <sstream>
-#include "die.hpp"
+#include "win32_kill-program.hpp"
 #include "windows.h"
 
-void die(const wchar_t *reason) {
+void win32_killProgram(const wchar_t *reason) {
     std::wostringstream errorMsg;
     errorMsg << "Critical Error: " << reason << std::endl;
     OutputDebugString(errorMsg.str().c_str());

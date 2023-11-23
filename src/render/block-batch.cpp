@@ -1,6 +1,5 @@
-#include "d3d-render.hpp"
-#include "game-rendering-context.hpp"
 #include "block-batch.hpp"
+#include "..\math\vector2-cross-ctet.hpp"
 
 static constexpr Vector3 LOCK_FLASH_COLOR = {1, 1, 1};
 static constexpr Vector3 HOLD_LOCKED_COLOR = {0.5, 0.5, 0.5};
@@ -64,7 +63,7 @@ static Vector2 realGetPieceQueueOffset(const CTetPieceType type) {
 
 static CTetPoint constexpr GAME_FIELD_OFFSET = {-5, -10};
 
-void blockBatch_setupActive(const CTetEngine *engine, BlockBatch *batch) {
+static void blockBatch_stageActive(const CTetEngine *engine, BlockBatch *batch) {
     const CTetPoint pieceOffset = ctEngine_getActivePiecePos(engine);
     const CTetPoint ghostPieceOffset = ctEngine_getGhostOffset(engine);
     const CTetPiece *piece = ctEngine_getActivePiece(engine);
@@ -90,7 +89,7 @@ void blockBatch_setupActive(const CTetEngine *engine, BlockBatch *batch) {
     }
 }
 
-void blockBatch_setupNext(const CTetEngine *engine, BlockBatch *batch) {
+static void blockBatch_stageNext(const CTetEngine *engine, BlockBatch *batch) {
     CTetPoint nextOffset = {6, 7};
     CTetPoint constexpr nextAdvance = {0, -3};
     const CTetPiece *nextPieces = ctEngine_getNextPieces(engine);
@@ -111,7 +110,7 @@ void blockBatch_setupNext(const CTetEngine *engine, BlockBatch *batch) {
     }
 }
 
-void blockBatch_setupHold(const CTetEngine *engine, BlockBatch *batch) {
+static void blockBatch_stageHold(const CTetEngine *engine, BlockBatch *batch) {
     constexpr CTetPoint holdOffset = {-9, 7};
     const CTetPiece heldPiece = *ctEngine_getHeldPiece(engine);
 
@@ -136,8 +135,10 @@ void blockBatch_setupHold(const CTetEngine *engine, BlockBatch *batch) {
         }
     }
 }
+
 static constexpr int LOCK_FLASH_TIMER = 35;
-void blockBatch_setupField(const CTetEngine *engine, BlockBatch *batch) {
+
+static void blockBatch_stageField(const CTetEngine *engine, BlockBatch *batch) {
     for (int y = 0; y < CT_TOTAL_FIELD_HEIGHT; y++) {
         for (int x = 0; x < CT_FIELD_WIDTH; x++) {
             const auto block = ctEngine_getBlockAtFieldLocation(engine, {x, y});
@@ -155,6 +156,13 @@ void blockBatch_setupField(const CTetEngine *engine, BlockBatch *batch) {
             }
         }
     }
+}
+
+void blockBatch_stageAll(const CTetEngine *engine, BlockBatch *batch) {
+    blockBatch_stageNext(engine, batch);
+    blockBatch_stageHold(engine, batch);
+    blockBatch_stageField(engine, batch);
+    blockBatch_stageActive(engine, batch);
 }
 
 static void blockBatch_initFieldPositions(BlockBatch *batch) {
@@ -178,92 +186,4 @@ static void blockBatch_initNextEnabled(BlockBatch *batch) {
 void blockBatch_init(BlockBatch *batch) {
     blockBatch_initFieldPositions(batch);
     blockBatch_initNextEnabled(batch);
-}
-
-static void createBlockBatchIndexBuffer(Mesh *blockMesh, ID3D11Device *device) {
-    constexpr int TOTAL_BLOCKS_IN_BATCH = sizeof(BlockBatch) / sizeof(BlockGroup);
-    constexpr int BLOCK_BATCH_INDICES = TOTAL_BLOCKS_IN_BATCH * 6;
-
-    UINT indices[BLOCK_BATCH_INDICES];
-    int index = 0;
-    for (int i = 0; i < TOTAL_BLOCKS_IN_BATCH; i++) {
-        indices[i * 6] = index;
-        indices[i * 6 + 1] = index + 2;
-        indices[i * 6 + 2] = index + 1;
-        indices[i * 6 + 3] = index + 3;
-        indices[i * 6 + 4] = index + 1;
-        indices[i * 6 + 5] = index + 2;
-        index += 4;
-    }
-
-    createBuffer(device, indices, &blockMesh->indexBuffer, {
-            .ByteWidth = sizeof(UINT) * BLOCK_BATCH_INDICES,
-            .Usage = D3D11_USAGE_DEFAULT,
-            .BindFlags = D3D11_BIND_INDEX_BUFFER,
-    });
-
-    blockMesh->indices = BLOCK_BATCH_INDICES;
-}
-
-static void createBlockBatchVertexBuffer(const BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device) {
-    createBuffer(device, blockBatch, &blockMesh->vertexBuffer, {
-            .ByteWidth = sizeof(BlockBatch),
-            .Usage = D3D11_USAGE_DYNAMIC,
-            .BindFlags = D3D11_BIND_VERTEX_BUFFER,
-            .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
-    });
-    blockMesh->stride = sizeof(BlockVertex);
-}
-
-static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer) {
-    D3D11_INPUT_ELEMENT_DESC layoutDesc[] = {
-            {
-                    "POSITION",
-                    0,
-                    DXGI_FORMAT_R32G32_FLOAT,
-                    0,
-                    0,
-                    D3D11_INPUT_PER_VERTEX_DATA,
-                    0,
-            },
-            {
-                    "BRIGHTNESS",
-                    0,
-                    DXGI_FORMAT_R32_FLOAT,
-                    0,
-                    sizeof(float) * 2,
-                    D3D11_INPUT_PER_VERTEX_DATA,
-                    0,
-            },
-            {
-                    "ENABLED",
-                    0,
-                    DXGI_FORMAT_R32_UINT,
-                    0,
-                    sizeof(float) * 2 + sizeof(float),
-                    D3D11_INPUT_PER_VERTEX_DATA,
-                    0,
-            },
-            {
-                    "COLOR",
-                    0,
-                    DXGI_FORMAT_R32G32B32_FLOAT,
-                    0,
-                    sizeof(float) * 2 + sizeof(float) + sizeof(unsigned int),
-                    D3D11_INPUT_PER_VERTEX_DATA,
-                    0,
-            }
-    };
-    shaderPair_init(&blockMesh->shaders, device, L"resources\\shaders\\BlockVertex.hlsl",
-                    L"resources\\shaders\\BlockPixel.hlsl", layoutDesc, 4);
-    blockMesh->shaders.constantBuffersVs.push_back(aspectRatioBuffer);
-}
-
-void createBlockBatchMesh(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer) {
-    blockBatch_init(blockBatch);
-
-    createBlockBatchVertexBuffer(blockBatch, blockMesh, device);
-    createBlockBatchIndexBuffer(blockMesh, device);
-
-    createBlockMeshShader(blockMesh, device, aspectRatioBuffer);
 }

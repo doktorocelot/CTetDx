@@ -5,34 +5,42 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-set(SOURCES
-        src/main.cpp
-        src/window/window.hpp
-        src/window/window.cpp
-        src/d3d/check-result.hpp
-        src/d3d/check-result.cpp
-        src/d3d/d3d-render.hpp
-        src/d3d/d3d-render.cpp
-        src/die.hpp
-        src/die.cpp
-        src/d3d/shader-pair.hpp
-        src/d3d/shader-pair.cpp
-        src/control/control.hpp
-        src/control/control.cpp
-        src/d3d/block-batch.hpp
-        src/d3d/block-batch.cpp
-        src/d3d/game-rendering-context.hpp
-        src/d3d/game-rendering-context.cpp
-        src/d3d/mesh.hpp
-        src/d3d/mesh.cpp
-        src/d3d/frame-mesh.hpp
-        src/d3d/frame-mesh.cpp
-        src/util/fps-counter.hpp
-        src/util/fps-counter.cpp
-        src/math/math.hpp
+# Sources to interact with win32
+set(WIN32_SOURCES
+        src/win32_main.cpp
+        
+        src/win32/win32_window.hpp src/win32/win32_window.cpp
+        src/win32/win32_check-result.hpp src/win32/win32_check-result.cpp
+        src/win32/win32_kill-program.hpp src/win32/win32_kill-program.cpp
 )
 
-add_executable(CTetDx WIN32 ${SOURCES})
+# Sources to interact with directx11
+set(DIRECTX11_SOURCES
+        src/render/d3d11_gfx.hpp src/render/d3d11_gfx.cpp
+        src/render/d3d11/d3d11_renderer.hpp src/render/d3d11/d3d11_renderer.cpp
+        src/render/d3d11/d3d11_shader-pair.hpp src/render/d3d11/d3d11_shader-pair.cpp
+        src/render/d3d11/d3d11_engine-rendering-context.hpp src/render/d3d11/d3d11_engine-rendering-context.cpp
+        src/render/d3d11/d3d11_mesh.hpp src/render/d3d11/d3d11_mesh.cpp
+        src/render/d3d11/d3d11_frame-mesh.hpp src/render/d3d11/d3d11_frame-mesh.cpp
+        src/render/d3d11/d3d11_block-mesh.hpp src/render/d3d11/d3d11_block-mesh.cpp
+)
+
+set(PLATFORM_SOURCES ${WIN32_SOURCES} ${DIRECTX11_SOURCES})
+
+set(SOURCES
+        src/control/control.hpp src/control/control.cpp
+        
+        src/render/block-batch.hpp src/render/block-batch.cpp
+        
+        src/util/fps-counter.hpp src/util/fps-counter.cpp
+        
+        src/math/vector2.hpp
+        src/math/vector3.hpp
+        src/math/vector2-cross-ctet.hpp
+        src/render/gfx.hpp
+)
+
+add_executable(CTetDx WIN32 ${SOURCES} ${PLATFORM_SOURCES})
 add_subdirectory(extern/ctet)
 
 target_link_libraries(CTetDx PUBLIC CTet)
@@ -44,19 +52,19 @@ add_compile_options(-DUNICODE -D_UNICODE)
 target_compile_options(CTetDx PRIVATE "/utf-8")
 target_compile_options(CTetDx PRIVATE "/D_UNICODE" "/DUNICODE")
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
     # Configuration for Release mode
     message("Building in Release mode")
     add_custom_target(CopyResources
-            COMMAND ${CMAKE_COMMAND} -E remove_directory 
+            COMMAND ${CMAKE_COMMAND} -E remove_directory
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources
-            
+
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/resources
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources
     )
     add_dependencies(CTetDx CopyResources)
-else()
+else ()
     # Configuration for Debug mode
     add_definitions(-DDEBUG)
     message("Building in Debug mode")
@@ -64,4 +72,4 @@ else()
             TARGET CTetDx
             PRE_BUILD COMMAND ${CMAKE_COMMAND} -E
             create_symlink ${CMAKE_SOURCE_DIR}/resources ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources)
-endif()
+endif ()

@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include "fps-counter.hpp"
-#include "../die.hpp"
+#include "..\win32\win32_kill-program.hpp"
 
 struct FpsCounter {
     int length;
@@ -21,7 +21,7 @@ static double sumFrameTimes(const FpsCounter *counter) {
 FpsCounter* fpsCounter_create(int maxHistory) {
     size_t size = sizeof(FpsCounter) + maxHistory * sizeof(double);
     if (auto *counter = static_cast<FpsCounter *>(malloc(size)); !counter) {
-        die(L"Could not allocate memory for FPS Counter.");
+        win32_killProgram(L"Could not allocate memory for FPS Counter.");
         return nullptr;
     }
     else {

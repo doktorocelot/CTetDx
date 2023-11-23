@@ -1,8 +1,8 @@
 #pragma once
 
 #include <ctet/ctet.h>
-#include "mesh.hpp"
-#include "../math/math.hpp"
+#include "../math/vector2.hpp"
+#include "../math/vector3.hpp"
 
 static constexpr int PIECE_BLOCK_COUNT = 4;
 static constexpr int BLOCK_VERTEX_COUNT = 4;
@@ -24,14 +24,6 @@ struct BlockBatch {
     BlockGroup holdPiece[PIECE_BLOCK_COUNT];
 };
 
-void blockBatch_setupActive(const CTetEngine *engine, BlockBatch *batch);
-
-void blockBatch_setupNext(const CTetEngine *engine, BlockBatch *batch);
-
-void blockBatch_setupHold(const CTetEngine *engine, BlockBatch *batch);
-
-void blockBatch_setupField(const CTetEngine *engine, BlockBatch *batch);
+void blockBatch_stageAll(const CTetEngine *engine, BlockBatch *batch);
 
 void blockBatch_init(BlockBatch *batch);
-
-void createBlockBatchMesh(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer);

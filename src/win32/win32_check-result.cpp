@@ -1,8 +1,8 @@
 #include <sstream>
-#include "check-result.hpp"
-#include "../die.hpp"
+#include "win32_check-result.hpp"
+#include "win32_kill-program.hpp"
 
-void checkResult(HRESULT r, const char *name) {
+void win32_checkResult(const HRESULT r, const char *name) {
     if (FAILED(r)) {
         std::wostringstream errorMsg;
         errorMsg
@@ -13,6 +13,6 @@ void checkResult(HRESULT r, const char *name) {
                 << ": "
                 << _com_error(r).ErrorMessage()
                 << std::endl;
-        die(errorMsg.str().c_str());
+        win32_killProgram(errorMsg.str().c_str());
     }
 }

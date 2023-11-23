@@ -1,8 +1,8 @@
-#include "game-rendering-context.hpp"
-#include "check-result.hpp"
-#include "d3d-render.hpp"
-#include "block-batch.hpp"
-#include "frame-mesh.hpp"
+#include "d3d11_engine-rendering-context.hpp"
+#include "../../win32/win32_check-result.hpp"
+#include "d3d11_renderer.hpp"
+#include "../block-batch.hpp"
+#include "d3d11_frame-mesh.hpp"
 
 static const FrameVertex frameVertices[] = {
         {{-5,    -10,    0}},
@@ -45,9 +45,9 @@ static const UINT frameIndices[] = {
         1, 8, 0
 };
 
-void createFrameMesh(Mesh *frameMesh, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer) {
+void createFrameMesh(D3d11Mesh *frameMesh, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer) {
     // Create vertex
-    createBuffer(device, frameVertices, &frameMesh->vertexBuffer, {
+    d3d11_createBuffer(device, frameVertices, &frameMesh->vertexBuffer, {
             .ByteWidth = sizeof(frameVertices),
             .Usage = D3D11_USAGE_DEFAULT,
             .BindFlags = D3D11_BIND_VERTEX_BUFFER,
@@ -55,7 +55,7 @@ void createFrameMesh(Mesh *frameMesh, ID3D11Device *device, ID3D11Buffer *aspect
     frameMesh->stride = sizeof(FrameVertex);
 
     // Create index
-    createBuffer(device, frameIndices, &frameMesh->indexBuffer, {
+    d3d11_createBuffer(device, frameIndices, &frameMesh->indexBuffer, {
             .ByteWidth = sizeof(frameIndices),
             .Usage = D3D11_USAGE_DEFAULT,
             .BindFlags = D3D11_BIND_INDEX_BUFFER,
@@ -79,5 +79,5 @@ void createFrameMesh(Mesh *frameMesh, ID3D11Device *device, ID3D11Buffer *aspect
                     L"resources\\shaders\\FramePixel.hlsl",
                     frameLayoutDesc, 1);
 
-    frameMesh->shaders.constantBuffersVs.push_back(aspectRatioBuffer);
+    shaderPair_pushCBufferVs(&frameMesh->shaders, aspectRatioBuffer);
 }

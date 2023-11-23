@@ -1,49 +1,23 @@
 #include <cstdlib>
 #include <sstream>
-#include "window.hpp"
-#include "../d3d/check-result.hpp"
-#include "../die.hpp"
+#include "win32_window.hpp"
+#include "win32_check-result.hpp"
+#include "win32_kill-program.hpp"
 #include "../util/fps-counter.hpp"
 
 #include <iostream>
 #include <iomanip>
+
+#include "../render/d3d11_gfx.hpp"
 
 #define WINDOW_TITLE L"CTetDx"
 #define WINDOW_WIDTH  720
 #define WINDOW_HEIGHT 720
 #define CTET_WINDOW_PROP_NAME L"CTetDx"
 
-
-static void resizeWindow(WPARAM wparam, LPARAM lparam, Window *window) {
-    Renderer *renderer = &window->renderer;
-    if (renderer->device != nullptr && wparam != SIZE_MINIMIZED) {
-        if (renderer->renderTarget != nullptr) {
-            renderer->renderTarget->Release();
-            renderer->renderTarget = nullptr;
-        }
-
-        if (renderer->swapChain != nullptr) {
-            WORD width = LOWORD(lparam);
-            WORD height = HIWORD(lparam);
-            renderer->deviceContext->ClearState();
-            renderer->deviceContext->Flush();
-            const HRESULT r = renderer->swapChain->ResizeBuffers(
-                    2,
-                    width,
-                    height,
-                    DXGI_FORMAT_R8G8B8A8_UNORM,
-                    0
-            );
-            checkResult(r, "SwapChain Resize Buffers");
-
-            renderer->aspectRatioBufferData = {(float) width / (float) height};
-            renderer_setAspectRatio(renderer);
-
-            createRenderTargetView(renderer->swapChain, renderer->device, renderer->deviceContext,
-                                   &renderer->renderTarget);
-            setViewport(width, height, renderer->deviceContext);
-        }
-    }
+static void resizeWindow(const WPARAM wparam, const LPARAM lparam, const Win32Window *window) {
+    const bool isMinimized = wparam != SIZE_MINIMIZED;
+    window->gfxFns->resize(window->gfx, LOWORD(lparam), HIWORD(lparam), isMinimized);
 }
 
 static void setWindowCentered(HWND windowHandle, const MONITORINFO &mi) {
@@ -58,7 +32,7 @@ static void setWindowCentered(HWND windowHandle, const MONITORINFO &mi) {
                  windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, SWP_FRAMECHANGED);
 }
 
-void toggleFullscreen(HWND windowHandle) {
+static void toggleFullscreen(HWND windowHandle) {
     MONITORINFO mi = {sizeof(mi)};
     HMONITOR hMonitor = MonitorFromWindow(windowHandle, MONITOR_DEFAULTTONEAREST);
     GetMonitorInfo(hMonitor, &mi);
@@ -76,7 +50,7 @@ void toggleFullscreen(HWND windowHandle) {
 }
 
 LRESULT CALLBACK windowProcedure(HWND windowHandle, UINT msg, WPARAM wparam, LPARAM lparam) {
-    auto *window = static_cast<Window *>(GetProp(windowHandle, CTET_WINDOW_PROP_NAME));
+    auto *window = static_cast<Win32Window *>(GetProp(windowHandle, CTET_WINDOW_PROP_NAME));
     switch (msg) {
         case WM_CLOSE:
             DestroyWindow(windowHandle);
@@ -109,11 +83,11 @@ LRESULT CALLBACK windowProcedure(HWND windowHandle, UINT msg, WPARAM wparam, LPA
     return 0;
 }
 
-static void unregisterClassFromWindow(Window *window) {
+static void unregisterClassFromWindow(Win32Window *window) {
     UnregisterClass(window->className, window->instance);
 }
 
-void window_init(Window *window, HINSTANCE instance) {
+void win32Window_init(Win32Window *window, HINSTANCE instance) {
     window->className = L"MainWindowClass";
 
     WNDCLASSEX wc = {
@@ -138,17 +112,17 @@ void window_init(Window *window, HINSTANCE instance) {
 
     if (window->window == nullptr) {
         unregisterClassFromWindow(window);
-        die(L"Window could not be created.");
+        win32_killProgram(L"Window could not be created.");
     }
 
     SetProp(window->window, CTET_WINDOW_PROP_NAME, window);
     RECT windowClient{};
     GetClientRect(window->window, &windowClient);
-    renderer_init(&window->renderer, window->window, windowClient.right - windowClient.left,
-                  windowClient.bottom - windowClient.top);
+    window->gfx = d3d11gfx_win32_create(&window->gfxFns, window->window, windowClient.right - windowClient.left,
+                                        windowClient.bottom - windowClient.top);
 }
 
-void window_loop(Window *window, CTetEngine *engine) {
+void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     MSG msg;
     LARGE_INTEGER frequency, lastTime, currentTime;
     float deltaTime;
@@ -157,9 +131,7 @@ void window_loop(Window *window, CTetEngine *engine) {
 
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&lastTime);
-
-    GameRenderingContext ctx = {};
-    gameRenderingContext_init(&ctx, window->renderer.device, window->renderer.aspectRatioBuffer);
+    
     ControlTracker *controlTracker = &window->controlTracker;
     controlTracker->keyAssign[VK_LEFT] = Control_SHIFT_LEFT;
     controlTracker->keyAssign[VK_RIGHT] = Control_SHIFT_RIGHT;
@@ -174,7 +146,6 @@ void window_loop(Window *window, CTetEngine *engine) {
     FpsCounter *fpsCounterDraw = fpsCounter_create(50);
 
     std::locale locale("");
-    const auto &np = std::use_facet<std::numpunct<char>>(locale);
 
     constexpr float TIME_BETWEEN_FPS_UPDATES = 0.5;
     float timeSinceLastFpsUpdate = TIME_BETWEEN_FPS_UPDATES;
@@ -188,7 +159,6 @@ void window_loop(Window *window, CTetEngine *engine) {
             DispatchMessage(&msg);
 
             if (msg.message == WM_QUIT) {
-                gameRenderingContext_cleanup(&ctx);
                 fpsCounter_destroy(fpsCounterUpdate);
                 fpsCounter_destroy(fpsCounterDraw);
                 return;
@@ -257,14 +227,14 @@ void window_loop(Window *window, CTetEngine *engine) {
         if (timeSinceLastRender >= TIME_BETWEEN_RENDERS) {
             fpsCounter_pushFrameTime(fpsCounterDraw, timeSinceLastRender);
             timeSinceLastRender -= TIME_BETWEEN_RENDERS;
-            renderer_drawFrame(&window->renderer, engine, &ctx);
+            window->gfxFns->drawFrame(window->gfx, engine);
         }
     }
 
 
 }
 
-void window_show(HWND window) {
+void win32Window_show(HWND window) {
     MONITORINFO mi = {sizeof(mi)};
     HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
     GetMonitorInfo(hMonitor, &mi);
@@ -273,8 +243,8 @@ void window_show(HWND window) {
     UpdateWindow(window);
 }
 
-void window_cleanup(Window *window) {
-    renderer_cleanup(&window->renderer);
+void win32Window_cleanup(Win32Window *window) {
+    window->gfxFns->cleanup(window->gfx);
     unregisterClassFromWindow(window);
     DestroyWindow(window->window);
 }
