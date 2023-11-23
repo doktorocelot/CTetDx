@@ -18,31 +18,31 @@ static DirectX::XMFLOAT3 colors[]{
         DirectX::XMFLOAT3(0.59, 0.18, 0.6),
 };
 
-void setBlockVertices(BlockGroup *group, DirectX::XMFLOAT2 position) {
+static void setBlockVertices(BlockGroup *group, DirectX::XMFLOAT2 position) {
     group->vertices[0].position = DirectX::XMFLOAT2(position.x, position.y);
     group->vertices[1].position = DirectX::XMFLOAT2(position.x + 1, position.y);
     group->vertices[2].position = DirectX::XMFLOAT2(position.x, position.y + 1);
     group->vertices[3].position = DirectX::XMFLOAT2(position.x + 1, position.y + 1);
 }
 
-void setBlockColor(BlockGroup *group, const DirectX::XMFLOAT3 colorValue) {
+static void setBlockColor(BlockGroup *group, const DirectX::XMFLOAT3 colorValue) {
     for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
         group->vertices[i].color = colorValue;
     }
 }
 
-void setBlockColorWithCTetColor(BlockGroup *group, const CTetBlockColor color) {
+static void setBlockColorWithCTetColor(BlockGroup *group, const CTetBlockColor color) {
     const auto colorVal = colors[color];
     setBlockColor(group, colorVal);
 }
 
-void setBlockBrightness(BlockGroup *group, float brightness) {
+static void setBlockBrightness(BlockGroup *group, float brightness) {
     for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
         group->vertices[i].brightness = brightness;
     }
 }
 
-void setBlockEnabled(BlockGroup *group, bool enabled) {
+static void setBlockEnabled(BlockGroup *group, bool enabled) {
     for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
         group->vertices[i].enabled = enabled;
     }
