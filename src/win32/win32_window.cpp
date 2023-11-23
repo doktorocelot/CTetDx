@@ -219,6 +219,8 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
                 case CT_MSG_GAME_OVER:
                     gameIsPlaying = false;
                     break;
+                default:
+                    break;
             }
         }
 
