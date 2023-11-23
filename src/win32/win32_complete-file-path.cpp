@@ -8,7 +8,7 @@ static void setDirectoryPath(WCHAR *directoryPath, int size) {
     PathRemoveFileSpec(directoryPath);
 }
 
-void setCompleteFilePath(std::wstring *dest, LPCWSTR relativeFilePath) {
+void win32_setCompleteFilePath(std::wstring *dest, LPCWSTR relativeFilePath) {
     WCHAR directoryPath[MAX_PATH];
     setDirectoryPath(directoryPath, MAX_PATH);
     dest->append(directoryPath);

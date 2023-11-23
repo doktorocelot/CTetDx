@@ -3,4 +3,4 @@
 #include <windows.h>
 #include <string>
 
-void setCompleteFilePath(std::wstring *dest, LPCWSTR relativeFilePath);
+void win32_setCompleteFilePath(std::wstring *dest, LPCWSTR relativeFilePath);

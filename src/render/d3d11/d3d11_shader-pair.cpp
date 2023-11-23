@@ -18,7 +18,7 @@ static HRESULT compileShader(
     ID3DBlob **shaderBlobOut
 ) {
     std::wstring completeFilePath;
-    setCompleteFilePath(&completeFilePath, filePath);
+    win32_setCompleteFilePath(&completeFilePath, filePath);
     HRESULT result = S_OK;
 
     if (!fileExists(completeFilePath.c_str())) {
