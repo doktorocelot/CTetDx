@@ -1,6 +1,5 @@
 #pragma once
 
-#include <DirectXMath.h>
 #include <ctet/ctet.h>
 #include "mesh.hpp"
 #include "../math/math.hpp"
@@ -25,13 +24,13 @@ struct BlockBatch {
     BlockGroup holdPiece[PIECE_BLOCK_COUNT];
 };
 
-void blockBatch_setupActive(CTetEngine *engine, BlockBatch *batch);
+void blockBatch_setupActive(const CTetEngine *engine, BlockBatch *batch);
 
-void blockBatch_setupNext(CTetEngine *engine, BlockBatch *batch);
+void blockBatch_setupNext(const CTetEngine *engine, BlockBatch *batch);
 
-void blockBatch_setupHold(CTetEngine *engine, BlockBatch *batch);
+void blockBatch_setupHold(const CTetEngine *engine, BlockBatch *batch);
 
-void blockBatch_setupField(CTetEngine *engine, BlockBatch *batch);
+void blockBatch_setupField(const CTetEngine *engine, BlockBatch *batch);
 
 void blockBatch_initFieldPositions(BlockBatch *batch);
 

@@ -4,7 +4,7 @@
 #include "mesh.hpp"
 
 struct FrameVertex {
-    DirectX::XMFLOAT3 position;
+    Vector3 position;
 };
 
 struct alignas(16) AspectConstantBuffer {

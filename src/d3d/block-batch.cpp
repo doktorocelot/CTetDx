@@ -1,7 +1,6 @@
 #include "d3d-render.hpp"
 #include "game-rendering-context.hpp"
 #include "block-batch.hpp"
-#include "math-util.hpp"
 
 static constexpr Vector3 LOCK_FLASH_COLOR = {1, 1, 1};
 static constexpr Vector3 HOLD_LOCKED_COLOR = {0.5, 0.5, 0.5};
@@ -35,33 +34,20 @@ static void setBlockColorWithCTetColor(BlockGroup *group, const CTetBlockColor c
     setBlockColor(group, colorVal);
 }
 
-static void setBlockBrightness(BlockGroup *group, float brightness) {
+static void setBlockBrightness(BlockGroup *group, const float brightness) {
     for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
         group->vertices[i].brightness = brightness;
     }
 }
 
-static void setBlockEnabled(BlockGroup *group, bool enabled) {
+static void setBlockEnabled(BlockGroup *group, const bool enabled) {
     for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
         group->vertices[i].enabled = enabled;
     }
 }
 
-static CTetPoint getPieceQueueOffset(const CTetPieceType type) {
-    CTetPoint additionalOffset;
-    switch (type) {
-        case CTetPieceType_O:
-            additionalOffset = {1, 1};
-            break;
-        default:
-            additionalOffset = {0};
-            break;
-    }
-    return additionalOffset;
-}
-
-static DirectX::XMFLOAT2 realGetPieceQueueOffset(const CTetPieceType type) {
-    DirectX::XMFLOAT2 additionalOffset{};
+static Vector2 realGetPieceQueueOffset(const CTetPieceType type) {
+    Vector2 additionalOffset{};
     switch (type) {
         case CTetPieceType_O:
             additionalOffset = {1, 1};
@@ -78,7 +64,7 @@ static DirectX::XMFLOAT2 realGetPieceQueueOffset(const CTetPieceType type) {
 
 static CTetPoint constexpr GAME_FIELD_OFFSET = {-5, -10};
 
-void blockBatch_setupActive(CTetEngine *engine, BlockBatch *batch) {
+void blockBatch_setupActive(const CTetEngine *engine, BlockBatch *batch) {
     const CTetPoint pieceOffset = ctEngine_getActivePiecePos(engine);
     const CTetPoint ghostPieceOffset = ctEngine_getGhostOffset(engine);
     const CTetPiece *piece = ctEngine_getActivePiece(engine);
@@ -94,28 +80,30 @@ void blockBatch_setupActive(CTetEngine *engine, BlockBatch *batch) {
     }
     // Active CTetPiece
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
-        CTetPoint coords = ctPoint_addToNew(pieceOffset, piece->coords[i]);
+        const CTetPoint coords = ctPoint_addToNew(pieceOffset, piece->coords[i]);
 
         setBlockColorWithCTetColor(&batch->field[coords.y][coords.x], piece->blocks[i].color);
         setBlockEnabled(&batch->field[coords.y][coords.x], true);
         constexpr float ratio = 0.7f;
-        float brightness = 1 - (1 - ctEngine_getLockDelayRemainingPercentage(engine)) * ratio;
+        const float brightness = 1 - (1 - ctEngine_getLockDelayRemainingPercentage(engine)) * ratio;
         setBlockBrightness(&batch->field[coords.y][coords.x], brightness);
     }
 }
 
-void blockBatch_setupNext(CTetEngine *engine, BlockBatch *batch) {
+void blockBatch_setupNext(const CTetEngine *engine, BlockBatch *batch) {
     CTetPoint nextOffset = {6, 7};
     CTetPoint constexpr nextAdvance = {0, -3};
     const CTetPiece *nextPieces = ctEngine_getNextPieces(engine);
 
     for (int i = 0; i < CT_NEXT_QUEUE_MAX_LENGTH; i++) {
-        auto piece = nextPieces[i];
-        auto nextPieceOffset = realGetPieceQueueOffset(piece.type);
+        const auto piece = nextPieces[i];
+        const auto nextPieceOffset = realGetPieceQueueOffset(piece.type);
         for (int j = 0; j < PIECE_BLOCK_COUNT; j++) {
-            auto coordsDx = ctPointToDx(ctPoint_addToNew(nextOffset, piece.coords[j]));
-            setBlockVertices(&batch->nextPieces[i][j],
-                             {coordsDx.x + nextPieceOffset.x, coordsDx.y + nextPieceOffset.y});
+            
+            auto coords = vector2_fromCtPoint(ctPoint_addToNew(nextOffset, piece.coords[j]));
+            vector2_add(&coords, nextPieceOffset);
+            
+            setBlockVertices(&batch->nextPieces[i][j], coords);
             setBlockBrightness(&batch->nextPieces[i][j], 1);
             setBlockColorWithCTetColor(&batch->nextPieces[i][j], piece.blocks[j].color);
         }
@@ -123,9 +111,9 @@ void blockBatch_setupNext(CTetEngine *engine, BlockBatch *batch) {
     }
 }
 
-void blockBatch_setupHold(CTetEngine *engine, BlockBatch *batch) {
-    CTetPoint holdOffset = {-9, 7};
-    CTetPiece heldPiece = *ctEngine_getHeldPiece(engine);
+void blockBatch_setupHold(const CTetEngine *engine, BlockBatch *batch) {
+    constexpr CTetPoint holdOffset = {-9, 7};
+    const CTetPiece heldPiece = *ctEngine_getHeldPiece(engine);
 
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
         const auto holdBlockGroup = &batch->holdPiece[i];
@@ -134,10 +122,11 @@ void blockBatch_setupHold(CTetEngine *engine, BlockBatch *batch) {
             setBlockEnabled(holdBlockGroup, false);
             continue;
         }
-        
-        auto coordsDx = ctPointToDx(ctPoint_addToNew(holdOffset, heldPiece.coords[i]));
+
+        const auto coords = vector2_fromCtPoint(ctPoint_addToNew(holdOffset, heldPiece.coords[i]));
         auto offset = realGetPieceQueueOffset(heldPiece.type);
-        setBlockVertices(holdBlockGroup, {coordsDx.x + offset.x - 1.0f, coordsDx.y + offset.y});
+        vector2_add(&offset, {-1, 0});
+        setBlockVertices(holdBlockGroup, vector2_addToNew(coords, offset));
         setBlockBrightness(holdBlockGroup, 1);
         setBlockEnabled(holdBlockGroup, true);
         if (ctEngine_holdIsLocked(engine)) {
@@ -148,7 +137,7 @@ void blockBatch_setupHold(CTetEngine *engine, BlockBatch *batch) {
     }
 }
 static constexpr int LOCK_FLASH_TIMER = 35;
-void blockBatch_setupField(CTetEngine *engine, BlockBatch *batch) {
+void blockBatch_setupField(const CTetEngine *engine, BlockBatch *batch) {
     for (int y = 0; y < CT_TOTAL_FIELD_HEIGHT; y++) {
         for (int x = 0; x < CT_FIELD_WIDTH; x++) {
             const auto block = ctEngine_getBlockAtFieldLocation(engine, {x, y});
@@ -186,7 +175,7 @@ void blockBatch_initNextEnabled(BlockBatch *batch) {
     }
 }
 
-static void createBlockBatchIndexBuffer(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device) {
+static void createBlockBatchIndexBuffer(Mesh *blockMesh, ID3D11Device *device) {
     constexpr int TOTAL_BLOCKS_IN_BATCH = sizeof(BlockBatch) / sizeof(BlockGroup);
     constexpr int BLOCK_BATCH_INDICES = TOTAL_BLOCKS_IN_BATCH * 6;
 
@@ -211,7 +200,7 @@ static void createBlockBatchIndexBuffer(BlockBatch *blockBatch, Mesh *blockMesh,
     blockMesh->indices = BLOCK_BATCH_INDICES;
 }
 
-static void createBlockBatchVertexBuffer(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device) {
+static void createBlockBatchVertexBuffer(const BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device) {
     createBuffer(device, blockBatch, &blockMesh->vertexBuffer, {
             .ByteWidth = sizeof(BlockBatch),
             .Usage = D3D11_USAGE_DYNAMIC,
@@ -270,7 +259,7 @@ void createBlockBatchMesh(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device 
     blockBatch_initNextEnabled(blockBatch);
 
     createBlockBatchVertexBuffer(blockBatch, blockMesh, device);
-    createBlockBatchIndexBuffer(blockBatch, blockMesh, device);
+    createBlockBatchIndexBuffer(blockMesh, device);
 
     createBlockMeshShader(blockMesh, device, aspectRatioBuffer);
 }
