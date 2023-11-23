@@ -32,8 +32,6 @@ void blockBatch_setupHold(const CTetEngine *engine, BlockBatch *batch);
 
 void blockBatch_setupField(const CTetEngine *engine, BlockBatch *batch);
 
-void blockBatch_initFieldPositions(BlockBatch *batch);
-
-void blockBatch_initNextEnabled(BlockBatch *batch);
+void blockBatch_init(BlockBatch *batch);
 
 void createBlockBatchMesh(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer);

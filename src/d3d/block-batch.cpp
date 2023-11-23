@@ -157,7 +157,7 @@ void blockBatch_setupField(const CTetEngine *engine, BlockBatch *batch) {
     }
 }
 
-void blockBatch_initFieldPositions(BlockBatch *batch) {
+static void blockBatch_initFieldPositions(BlockBatch *batch) {
     for (int y = 0; y < CT_TOTAL_FIELD_HEIGHT; y++) {
         for (int x = 0; x < CT_FIELD_WIDTH; x++) {
             const auto coords = ctPoint_addToNew(GAME_FIELD_OFFSET, {x, y});
@@ -166,13 +166,18 @@ void blockBatch_initFieldPositions(BlockBatch *batch) {
     }
 }
 
-void blockBatch_initNextEnabled(BlockBatch *batch) {
+static void blockBatch_initNextEnabled(BlockBatch *batch) {
     for (int i = 0; i < CT_NEXT_QUEUE_MAX_LENGTH; i++) {
         for (int j = 0; j < PIECE_BLOCK_COUNT; j++) {
             setBlockEnabled(&batch->nextPieces[i][j], true);
         }
 
     }
+}
+
+void blockBatch_init(BlockBatch *batch) {
+    blockBatch_initFieldPositions(batch);
+    blockBatch_initNextEnabled(batch);
 }
 
 static void createBlockBatchIndexBuffer(Mesh *blockMesh, ID3D11Device *device) {
@@ -255,8 +260,7 @@ static void createBlockMeshShader(Mesh *blockMesh, ID3D11Device *device, ID3D11B
 }
 
 void createBlockBatchMesh(BlockBatch *blockBatch, Mesh *blockMesh, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer) {
-    blockBatch_initFieldPositions(blockBatch);
-    blockBatch_initNextEnabled(blockBatch);
+    blockBatch_init(blockBatch);
 
     createBlockBatchVertexBuffer(blockBatch, blockMesh, device);
     createBlockBatchIndexBuffer(blockMesh, device);
