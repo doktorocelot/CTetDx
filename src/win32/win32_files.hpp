@@ -5,4 +5,4 @@
 
 bool fileExists(const wchar_t *filePath);
 
-void win32_setCompleteFilePath(std::wstring *dest, LPCWSTR relativeFilePath);
+void win32_setCompleteFilePath(WCHAR *dest, const int destSize, LPCWSTR relativeFilePath);

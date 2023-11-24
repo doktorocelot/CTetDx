@@ -12,11 +12,11 @@ static HRESULT compileShader(
     LPCSTR shaderModel,
     ID3DBlob **shaderBlobOut
 ) {
-    std::wstring completeFilePath;
-    win32_setCompleteFilePath(&completeFilePath, filePath);
+    WCHAR completeFilePath[MAX_PATH];
+    win32_setCompleteFilePath(completeFilePath, MAX_PATH, filePath);
     HRESULT result = S_OK;
 
-    if (!fileExists(completeFilePath.c_str())) {
+    if (!fileExists(completeFilePath)) {
         std::wstring errorMessage = L"Could not load shader file: " + std::wstring(completeFilePath);
         win32_killProgram(errorMessage.c_str());
     }
@@ -24,7 +24,7 @@ static HRESULT compileShader(
     ID3DBlob *errorBlob = nullptr;
 
     result = D3DCompileFromFile(
-        completeFilePath.c_str(),
+        completeFilePath,
         nullptr,
         nullptr,
         "main",

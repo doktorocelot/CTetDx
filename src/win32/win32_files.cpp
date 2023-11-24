@@ -12,10 +12,29 @@ static void setDirectoryPath(WCHAR *directoryPath, const int size) {
     PathRemoveFileSpec(directoryPath);
 }
 
-void win32_setCompleteFilePath(std::wstring *dest, const LPCWSTR relativeFilePath) {
-    WCHAR directoryPath[MAX_PATH];
-    setDirectoryPath(directoryPath, MAX_PATH);
-    dest->append(directoryPath);
-    dest->append(L"\\");
-    dest->append(relativeFilePath);
+static int getWideStringLength(const WCHAR *str) {
+    int length = 0;
+    while (*str != L'\0') {
+        ++length;
+        ++str;
+    }
+    return length;
+}
+
+static void wideStringCopy(WCHAR *dest, const WCHAR *src, int size) {
+    for (int i = 0; i < size; i++) {
+        dest[i] = src[i];
+    }
+    dest[size] = L'\0';
+}
+
+void win32_setCompleteFilePath(WCHAR *dest, const int destSize, const LPCWSTR relativeFilePath) {
+    setDirectoryPath(dest, destSize);
+    const int directoryPathLength = getWideStringLength(dest);
+    const int relativeFilePathLen = getWideStringLength(relativeFilePath);
+    if (const int totalPathLength = directoryPathLength + relativeFilePathLen + 1;
+        totalPathLength < destSize) {
+        dest[directoryPathLength] = L'\\';
+        wideStringCopy(&dest[directoryPathLength + 1], relativeFilePath, relativeFilePathLen);
+    }
 }
