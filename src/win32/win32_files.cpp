@@ -53,6 +53,10 @@ HANDLE win32_openFile(const WCHAR *fileName) {
     return file;
 }
 
+uint32_t win32_getFileSize(const HANDLE file) {
+    return GetFileSize(file, nullptr);
+}
+
 void win32_closeFile(const HANDLE file) {
     CloseHandle(file);
 }
