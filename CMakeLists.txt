@@ -32,9 +32,10 @@ set(SOURCES
         src/control/control.hpp src/control/control.cpp
         
         src/render/block-batch.hpp src/render/block-batch.cpp
-        
+        src/render/bmp.hpp src/render/bmp.cpp
+
         src/util/fps-counter.hpp src/util/fps-counter.cpp
-        
+
         src/math/vector2.hpp
         src/math/vector3.hpp
         src/math/vector2-cross-ctet.hpp
