@@ -1,7 +1,12 @@
-#include "win32_complete-file-path.hpp"
+#include "win32_files.hpp"
 
 #include <fstream>
 #include <Shlwapi.h>
+
+bool fileExists(const wchar_t *filePath) {
+    std::ifstream file(filePath);
+    return file.is_open();
+}
 
 static void setDirectoryPath(WCHAR *directoryPath, const int size) {
     GetModuleFileName(nullptr, directoryPath, size);

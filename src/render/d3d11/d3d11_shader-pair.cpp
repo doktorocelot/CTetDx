@@ -1,16 +1,11 @@
 #include <d3dcompiler.h>
 #include "d3d11_shader-pair.hpp"
 #include "../../win32/win32_check-result.hpp"
-#include "../../win32/win32_complete-file-path.hpp"
+#include "..\..\win32\win32_files.hpp"
 #include "../../win32/win32_kill-program.hpp"
 #include <Shlwapi.h>
 #include <string>
 #include <fstream>
-
-static bool fileExists(const wchar_t *filePath) {
-    std::ifstream file(filePath);
-    return file.is_open();
-}
 
 static HRESULT compileShader(
     LPCWSTR filePath,
