@@ -38,3 +38,21 @@ void win32_setCompleteFilePath(WCHAR *dest, const int destSize, const WCHAR *rel
         wideStringCopy(&dest[directoryPathLength + 1], relativeFilePath, relativeFilePathLen);
     }
 }
+
+HANDLE win32_openFile(const WCHAR *fileName) {
+    const HANDLE file = CreateFile(
+        fileName,
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        nullptr,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        nullptr
+    );
+
+    return file;
+}
+
+void win32_closeFile(const HANDLE file) {
+    CloseHandle(file);
+}
