@@ -16,7 +16,7 @@ static HRESULT compileShader(
     win32_setCompleteFilePath(completeFilePath, MAX_PATH, filePath);
     HRESULT result = S_OK;
 
-    if (!fileExists(completeFilePath)) {
+    if (!win32_fileExists(completeFilePath)) {
         std::wstring errorMessage = L"Could not load shader file: " + std::wstring(completeFilePath);
         win32_killProgram(errorMessage.c_str());
     }

@@ -2,7 +2,7 @@
 
 #include <Shlwapi.h>
 
-bool fileExists(const WCHAR *filePath) {
+bool win32_fileExists(const WCHAR *filePath) {
     const DWORD fileAttributes = GetFileAttributes(filePath);
     return fileAttributes != INVALID_FILE_ATTRIBUTES && !(fileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
