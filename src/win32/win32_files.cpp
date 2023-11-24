@@ -28,7 +28,7 @@ static void wideStringCopy(WCHAR *dest, const WCHAR *src, int size) {
     dest[size] = L'\0';
 }
 
-void win32_setCompleteFilePath(WCHAR *dest, const int destSize, const LPCWSTR relativeFilePath) {
+void win32_setCompleteFilePath(WCHAR *dest, const int destSize, const WCHAR *relativeFilePath) {
     setDirectoryPath(dest, destSize);
     const int directoryPathLength = getWideStringLength(dest);
     const int relativeFilePathLen = getWideStringLength(relativeFilePath);
