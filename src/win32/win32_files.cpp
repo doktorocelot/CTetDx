@@ -1,11 +1,10 @@
 #include "win32_files.hpp"
 
-#include <fstream>
 #include <Shlwapi.h>
 
 bool fileExists(const wchar_t *filePath) {
-    std::ifstream file(filePath);
-    return file.is_open();
+    const DWORD fileAttributes = GetFileAttributes(filePath);
+    return fileAttributes != INVALID_FILE_ATTRIBUTES && !(fileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
 static void setDirectoryPath(WCHAR *directoryPath, const int size) {
