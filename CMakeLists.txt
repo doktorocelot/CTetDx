@@ -13,7 +13,7 @@ set(WIN32_SOURCES
         src/win32/win32_check-result.hpp src/win32/win32_check-result.cpp
         src/win32/win32_kill-program.hpp src/win32/win32_kill-program.cpp
         src/win32/win32_files.hpp src/win32/win32_files.cpp
-
+        src/win32/win32_memory.hpp src/win32/win32_memory.cpp
 )
 
 # Sources to interact with directx11
