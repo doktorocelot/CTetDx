@@ -141,8 +141,8 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     auto fpsCounterUpdate = static_cast<FpsCounter *>(win32_allocateMemory(fpsCounter_getSize(200)));
     fpsCounter_init(fpsCounterUpdate, 200);
     
-    auto fpsCounterDraw = static_cast<FpsCounter *>(win32_allocateMemory(fpsCounter_getSize(200)));
-    fpsCounter_init(fpsCounterDraw, 200);
+    auto fpsCounterDraw = static_cast<FpsCounter *>(win32_allocateMemory(fpsCounter_getSize(50)));
+    fpsCounter_init(fpsCounterDraw, 50);
     
     std::locale locale("");
 
