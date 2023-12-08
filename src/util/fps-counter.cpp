@@ -23,10 +23,6 @@ FpsCounter* fpsCounter_create(int maxHistory) {
     }
 }
 
-void fpsCounter_destroy(FpsCounter *counter) {
-    free(counter);
-}
-
 void fpsCounter_pushFrameTime(FpsCounter *counter, double frameTime) {
     counter->frameTimes[counter->ptr++] = frameTime;
     counter->ptr %= counter->length;
