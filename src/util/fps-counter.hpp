@@ -1,5 +1,10 @@
 #pragma once
-struct FpsCounter;
+struct FpsCounter {
+    int length;
+    unsigned int ptr;
+    int totalPushed;
+    double frameTimes[];
+};
 
 FpsCounter *fpsCounter_create(int maxHistory);
 void fpsCounter_pushFrameTime(FpsCounter *counter, double frameTime);

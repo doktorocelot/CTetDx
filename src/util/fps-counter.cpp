@@ -3,13 +3,6 @@
 #include "fps-counter.hpp"
 #include "..\win32\win32_kill-program.hpp"
 
-struct FpsCounter {
-    int length;
-    unsigned int ptr;
-    int totalPushed;
-    double frameTimes[];
-};
-
 static double sumFrameTimes(const FpsCounter *counter) {
     double frameDeltas = 0;
     for (int i = 0; i < counter->totalPushed; i++) {
