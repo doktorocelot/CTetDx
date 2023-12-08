@@ -18,5 +18,3 @@ void win32Window_init(Win32Window *window, HINSTANCE instance);
 void win32Window_loop(Win32Window *window, CTetEngine *engine);
 
 void win32Window_show(HWND window);
-
-void win32Window_cleanup(Win32Window *window);

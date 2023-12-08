@@ -81,10 +81,6 @@ LRESULT CALLBACK windowProcedure(HWND windowHandle, UINT msg, WPARAM wparam, LPA
     return 0;
 }
 
-static void unregisterClassFromWindow(Win32Window *window) {
-    UnregisterClass(window->className, window->instance);
-}
-
 void win32Window_init(Win32Window *window, HINSTANCE instance) {
     window->className = L"MainWindowClass";
 
@@ -109,7 +105,6 @@ void win32Window_init(Win32Window *window, HINSTANCE instance) {
     );
 
     if (window->window == nullptr) {
-        unregisterClassFromWindow(window);
         win32_killProgram(L"Window could not be created.");
     }
 
@@ -161,9 +156,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
             DispatchMessage(&msg);
 
             if (msg.message == WM_QUIT) {
-                fpsCounter_destroy(fpsCounterUpdate);
-                fpsCounter_destroy(fpsCounterDraw);
-                d3d11EngineRenderingCtx_cleanup(&ctx);
+                // We are done. Nuke the program into orbit.
                 return;
             }
         }
@@ -244,10 +237,4 @@ void win32Window_show(HWND window) {
     setWindowCentered(window, mi);
     ShowWindow(window, SW_SHOWNORMAL);
     UpdateWindow(window);
-}
-
-void win32Window_cleanup(Win32Window *window) {
-    d3d11Renderer_cleanup(&window->d3d11Renderer);
-    unregisterClassFromWindow(window);
-    DestroyWindow(window->window);
 }

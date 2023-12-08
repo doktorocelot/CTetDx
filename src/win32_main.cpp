@@ -10,6 +10,7 @@ int CALLBACK WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdStr, i
     win32Window_init(&window, instance);
     win32Window_show(window.window);
     win32Window_loop(&window, engine);
-    win32Window_cleanup(&window);
+    // Manually freeing memory and calling cleanup is pointless since the program is closing.
+    // Windows will do the cleaning up. Don't waste the user's time.
     return 0;
 }

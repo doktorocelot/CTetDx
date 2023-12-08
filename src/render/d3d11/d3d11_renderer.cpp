@@ -88,16 +88,6 @@ void d3d11Renderer_init(D3d11Renderer *renderer, HWND window, int width, int hei
     createAspectRatioBuffer(renderer);
 }
 
-void d3d11Renderer_cleanup(D3d11Renderer *renderer) {
-    renderer->aspectRatioBuffer->Release();
-    renderer->deviceContext->ClearState();
-    renderer->deviceContext->Flush();
-    renderer->deviceContext->Release();
-    renderer->swapChain->Release();
-    renderer->renderTarget->Release();
-    renderer->device->Release();
-}
-
 void d3d11Renderer_drawFrame(D3d11Renderer *renderer, CTetEngine *engine, D3d11EngineRenderingCtx *context) {
     float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
     renderer->deviceContext->ClearRenderTargetView(renderer->renderTarget, clearColor);

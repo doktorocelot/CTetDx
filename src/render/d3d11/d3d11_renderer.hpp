@@ -16,7 +16,6 @@ struct D3d11Renderer {
 
 void d3d11Renderer_init(D3d11Renderer *renderer, HWND window, int width, int height);
 
-void d3d11Renderer_cleanup(D3d11Renderer *renderer);
 
 void d3d11Renderer_drawFrame(D3d11Renderer *renderer, CTetEngine *engine, D3d11EngineRenderingCtx *context);
 
