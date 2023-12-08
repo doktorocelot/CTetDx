@@ -8,6 +8,8 @@
 #include <iostream>
 #include <iomanip>
 
+#include "win32_memory.hpp"
+
 #define WINDOW_TITLE L"CTetDx"
 #define WINDOW_WIDTH  720
 #define WINDOW_HEIGHT 720
@@ -136,9 +138,12 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     controlTracker->keyAssign[static_cast<int>('C')] = Control_HOLD;
     controlTracker->keyAssign[static_cast<int>('R')] = Control_RETRY;
 
-    FpsCounter *fpsCounterUpdate = fpsCounter_create(200);
-    FpsCounter *fpsCounterDraw = fpsCounter_create(50);
-
+    auto fpsCounterUpdate = static_cast<FpsCounter *>(win32_allocateMemory(fpsCounter_getSize(200)));
+    fpsCounter_init(fpsCounterUpdate, 200);
+    
+    auto fpsCounterDraw = static_cast<FpsCounter *>(win32_allocateMemory(fpsCounter_getSize(200)));
+    fpsCounter_init(fpsCounterDraw, 200);
+    
     std::locale locale("");
 
     D3d11EngineRenderingCtx ctx {};

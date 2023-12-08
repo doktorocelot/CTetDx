@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <algorithm>
 #include "fps-counter.hpp"
 
@@ -10,17 +9,14 @@ static double sumFrameTimes(const FpsCounter *counter) {
     return frameDeltas;
 }
 
-FpsCounter* fpsCounter_create(int maxHistory) {
-    size_t size = sizeof(FpsCounter) + maxHistory * sizeof(double);
-    if (auto *counter = static_cast<FpsCounter *>(malloc(size)); !counter) {
-        return nullptr;
-    }
-    else {
-        counter->length = maxHistory;
-        counter->totalPushed = 0;
-        counter->ptr = 0;
-        return counter;
-    }
+size_t fpsCounter_getSize(int maxHistory){
+    return sizeof(FpsCounter) + maxHistory * sizeof(double);
+}
+
+void fpsCounter_init(FpsCounter *counter, int maxHistory) {
+    counter->length = maxHistory;
+    counter->totalPushed = 0;
+    counter->ptr = 0;
 }
 
 void fpsCounter_pushFrameTime(FpsCounter *counter, double frameTime) {

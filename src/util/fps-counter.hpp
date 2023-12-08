@@ -6,7 +6,8 @@ struct FpsCounter {
     double frameTimes[];
 };
 
-FpsCounter *fpsCounter_create(int maxHistory);
+size_t fpsCounter_getSize(int maxHistory);
+void fpsCounter_init(FpsCounter *counter, int maxHistory);
 void fpsCounter_pushFrameTime(FpsCounter *counter, double frameTime);
 double fpsCounter_getFps(FpsCounter *counter);
 double fpsCounter_getAverageFrameTime(FpsCounter *counter);
