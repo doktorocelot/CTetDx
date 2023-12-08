@@ -118,6 +118,12 @@ void win32Window_init(Win32Window *window, HINSTANCE instance) {
         windowClient.bottom - windowClient.top);
 }
 
+static FpsCounter *initializeFpsCounter(size_t historyLength) {
+    auto counter = static_cast<FpsCounter *>(win32_allocateMemory(fpsCounter_getSize(historyLength)));
+    fpsCounter_init(counter, historyLength);
+    return counter;
+}
+
 void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     MSG msg;
     LARGE_INTEGER frequency, lastTime, currentTime;
@@ -138,11 +144,8 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     controlTracker->keyAssign[static_cast<int>('C')] = Control_HOLD;
     controlTracker->keyAssign[static_cast<int>('R')] = Control_RETRY;
 
-    auto fpsCounterUpdate = static_cast<FpsCounter *>(win32_allocateMemory(fpsCounter_getSize(200)));
-    fpsCounter_init(fpsCounterUpdate, 200);
-    
-    auto fpsCounterDraw = static_cast<FpsCounter *>(win32_allocateMemory(fpsCounter_getSize(50)));
-    fpsCounter_init(fpsCounterDraw, 50);
+    auto fpsCounterUpdate = initializeFpsCounter(200);
+    auto fpsCounterDraw = initializeFpsCounter(50);
     
     std::locale locale("");
 
