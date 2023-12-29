@@ -1,6 +1,3 @@
-Texture2D g_Texture : register(t0);
-SamplerState g_Sampler : register(s0);
-
 struct VertexInput {
     float2 Position : POSITION;
     float Brightness : BRIGHTNESS;
