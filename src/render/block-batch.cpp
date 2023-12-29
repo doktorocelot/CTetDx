@@ -1,10 +1,7 @@
 #include "block-batch.hpp"
 
 #include "../math/rect.hpp"
-#include "..\math\vector2-cross-ctet.hpp"
-
-static constexpr Vector3 LOCK_FLASH_COLOR = {1, 1, 1};
-static constexpr Vector3 HOLD_LOCKED_COLOR = {0.5, 0.5, 0.5};
+#include "../math/vector2-cross-ctet.hpp"
 
 static Vector3 colors[]{
         {0, 0, 0},
@@ -24,7 +21,11 @@ static void setBlockVertices(BlockGroup *group, const Vector2 position) {
     group->vertices[3].position = vector2_addToNew(position, {1, 1});
 }
 
-static RectAbsolute texCoordsColorLut[]{
+static constexpr RectAbsolute HOLD_LOCKED_UV = {
+    0.220703125, 0.41015625, 0.00390625, 0.193359375
+};
+
+static constexpr RectAbsolute TEX_COORDS_LUT[]{
     {0, 0, 0, 0},
     {0.806640625, 0.99609375, 0.00390625, 0.193359375},
     {0.806640625, 0.99609375, 0.19921875, 0.388671875},
@@ -35,16 +36,16 @@ static RectAbsolute texCoordsColorLut[]{
     {0.611328125, 0.80078125, 0.39453125, 0.583984375},
 };
 
-static void setBlockColor(BlockGroup *group, const Vector3 colorValue) {
-
+static void setBlockUv(BlockGroup *group, const RectAbsolute coords) {
+    group->vertices[0].texCoords = {coords.left, coords.top};
+    group->vertices[1].texCoords = {coords.right, coords.top};
+    group->vertices[2].texCoords = {coords.left, coords.bottom};
+    group->vertices[3].texCoords = {coords.right, coords.bottom};
 }
 
 static void setBlockColorWithCTetColor(BlockGroup *group, const CTetBlockColor color) {
-    const RectAbsolute rect = texCoordsColorLut[color];
-    group->vertices[0].texCoords = {rect.left, rect.top};
-    group->vertices[1].texCoords = {rect.right, rect.top};
-    group->vertices[2].texCoords = {rect.left, rect.bottom};
-    group->vertices[3].texCoords = {rect.right, rect.bottom};
+    const RectAbsolute rect = TEX_COORDS_LUT[color];
+    setBlockUv(group, rect);
 }
 
 static void setBlockBrightness(BlockGroup *group, const float brightness) {
@@ -143,7 +144,7 @@ static void blockBatch_stageHold(const CTetEngine *engine, BlockBatch *batch) {
         setBlockBrightness(holdBlockGroup, 1);
         setBlockEnabled(holdBlockGroup, true);
         if (ctEngine_holdIsLocked(engine)) {
-            setBlockColor(holdBlockGroup, HOLD_LOCKED_COLOR);
+            setBlockUv(holdBlockGroup, HOLD_LOCKED_UV);
         } else {
             setBlockColorWithCTetColor(holdBlockGroup, heldPiece.blocks[i].color);
         }
@@ -163,7 +164,6 @@ static void blockBatch_stageField(const CTetEngine *engine, BlockBatch *batch) {
             setBlockEnabled(&batch->field[y][x], true);
             if (ctEngine_getTimestamp(engine) - block->lockedTimestamp < LOCK_FLASH_TIMER) {
                 setBlockBrightness(&batch->field[y][x], 1);
-                setBlockColor(&batch->field[y][x], LOCK_FLASH_COLOR);
             } else {
                 setBlockBrightness(&batch->field[y][x], 0.8f);
                 setBlockColorWithCTetColor(&batch->field[y][x], block->color);    
