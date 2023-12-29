@@ -8,6 +8,7 @@ struct VertexInput {
 struct VertexOutput {
     float4 Position : SV_POSITION;
     float2 TexCoord : TEXCOORD0;
+    float Brightness : BRIGHTNESS;
 };
 
 cbuffer AspectRatioBuffer : register(b0) {
@@ -30,6 +31,7 @@ VertexOutput main(VertexInput input) {
     output.Position = float4(adjustedPosition, 0.0f, 1.0f);
     
     output.TexCoord = input.TexCoord;
-    
+    output.Brightness = input.Brightness;    
+
     return output;
 }
