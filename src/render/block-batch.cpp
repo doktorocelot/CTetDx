@@ -1,4 +1,6 @@
 #include "block-batch.hpp"
+
+#include "../math/rect.hpp"
 #include "..\math\vector2-cross-ctet.hpp"
 
 static constexpr Vector3 LOCK_FLASH_COLOR = {1, 1, 1};
@@ -22,19 +24,27 @@ static void setBlockVertices(BlockGroup *group, const Vector2 position) {
     group->vertices[3].position = vector2_addToNew(position, {1, 1});
 }
 
+static RectAbsolute texCoordsColorLut[]{
+    {0, 0, 0, 0},
+    {0.806640625, 0.99609375, 0.00390625, 0.193359375},
+    {0.806640625, 0.99609375, 0.19921875, 0.388671875},
+    {0.806640625, 0.99609375, 0.39453125, 0.583984375},
+    {0.806640625, 0.99609375, 0.58984375, 0.779296875},
+    {0.611328125, 0.80078125, 0.00390625, 0.193359375},
+    {0.611328125, 0.80078125, 0.19921875, 0.388671875},
+    {0.611328125, 0.80078125, 0.39453125, 0.583984375},
+};
+
 static void setBlockColor(BlockGroup *group, const Vector3 colorValue) {
-    group->vertices[0].texCoords = {0, 0};
-    group->vertices[1].texCoords = {1, 0};
-    group->vertices[2].texCoords = {0, 1};
-    group->vertices[3].texCoords = {1, 1};
-    // for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
-    //     group->vertices[i].color = colorValue;
-    // }
+
 }
 
 static void setBlockColorWithCTetColor(BlockGroup *group, const CTetBlockColor color) {
-    const auto colorVal = colors[color];
-    setBlockColor(group, colorVal);
+    const RectAbsolute rect = texCoordsColorLut[color];
+    group->vertices[0].texCoords = {rect.left, rect.top};
+    group->vertices[1].texCoords = {rect.right, rect.top};
+    group->vertices[2].texCoords = {rect.left, rect.bottom};
+    group->vertices[3].texCoords = {rect.right, rect.bottom};
 }
 
 static void setBlockBrightness(BlockGroup *group, const float brightness) {
