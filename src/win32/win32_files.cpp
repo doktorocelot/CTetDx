@@ -1,5 +1,7 @@
 #include "win32_files.hpp"
 
+#include "win32_memory.hpp"
+
 #include <Shlwapi.h>
 
 bool win32_fileExists(const WCHAR *filePath) {
@@ -39,9 +41,9 @@ void win32_setCompleteFilePath(WCHAR *dest, const int destSize, const WCHAR *rel
     }
 }
 
-HANDLE win32_openFile(const WCHAR *fileName) {
+HANDLE win32_openFile(const WCHAR *filePath) {
     const HANDLE file = CreateFile(
-        fileName,
+        filePath,
         GENERIC_READ,
         FILE_SHARE_READ,
         nullptr,
@@ -59,4 +61,11 @@ uint32_t win32_getFileSize(const HANDLE file) {
 
 void win32_closeFile(const HANDLE file) {
     CloseHandle(file);
+}
+
+unsigned char *win32_loadFileIntoNewVirtualBuffer(const HANDLE fileHandle) {
+    uint32_t fileSize = win32_getFileSize(fileHandle);
+    auto fileData = static_cast<unsigned char *>(win32_allocateMemory(fileSize));
+    ReadFile(fileHandle, fileData, fileSize, nullptr, nullptr);
+    return fileData;
 }

@@ -23,9 +23,13 @@ static void setBlockVertices(BlockGroup *group, const Vector2 position) {
 }
 
 static void setBlockColor(BlockGroup *group, const Vector3 colorValue) {
-    for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
-        group->vertices[i].color = colorValue;
-    }
+    group->vertices[0].texCoords = {0, 0};
+    group->vertices[1].texCoords = {1, 0};
+    group->vertices[2].texCoords = {0, 1};
+    group->vertices[3].texCoords = {1, 1};
+    // for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
+    //     group->vertices[i].color = colorValue;
+    // }
 }
 
 static void setBlockColorWithCTetColor(BlockGroup *group, const CTetBlockColor color) {

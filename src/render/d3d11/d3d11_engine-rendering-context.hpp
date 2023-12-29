@@ -15,6 +15,9 @@ struct D3d11EngineRenderingCtx {
     BlockBatch blockBatch;
     D3d11Mesh blockMesh;
     D3d11Mesh frameMesh;
+    ID3D11Texture2D *blockSkinTexture;
+    ID3D11ShaderResourceView *blockSkinSrv;
+    ID3D11SamplerState *blockSkinSampler;
 };
 
 void d3d11EngineRenderingCtx_init(D3d11EngineRenderingCtx *ctx, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer);

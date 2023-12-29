@@ -96,6 +96,9 @@ void d3d11Renderer_drawFrame(D3d11Renderer *renderer, CTetEngine *engine, D3d11E
     mesh_draw(&context->frameMesh, renderer->deviceContext);
 
     updateBlockBatchInMesh(&context->blockBatch, &context->blockMesh, engine, renderer->deviceContext);
+
+    renderer->deviceContext->PSSetShaderResources(0, 1, &context->blockSkinSrv);
+    renderer->deviceContext->PSSetSamplers(0, 1, &context->blockSkinSampler);
     mesh_use(&context->blockMesh, renderer->deviceContext);
     mesh_draw(&context->blockMesh, renderer->deviceContext);
 

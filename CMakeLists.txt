@@ -24,6 +24,7 @@ set(DIRECTX11_SOURCES
         src/render/d3d11/d3d11_mesh.hpp src/render/d3d11/d3d11_mesh.cpp
         src/render/d3d11/d3d11_frame-mesh.hpp src/render/d3d11/d3d11_frame-mesh.cpp
         src/render/d3d11/d3d11_block-mesh.hpp src/render/d3d11/d3d11_block-mesh.cpp
+        src/render/d3d11/d3d11_texture.hpp src/render/d3d11/d3d11_texture.cpp 
 )
 
 set(PLATFORM_SOURCES ${WIN32_SOURCES} ${DIRECTX11_SOURCES})

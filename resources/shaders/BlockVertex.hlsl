@@ -1,13 +1,16 @@
+Texture2D g_Texture : register(t0);
+SamplerState g_Sampler : register(s0);
+
 struct VertexInput {
     float2 Position : POSITION;
     float Brightness : BRIGHTNESS;
     bool Enabled : ENABLED;
-    float3 Color : COLOR;
+    float2 TexCoord : TEXCOORD0;
 };
 
 struct VertexOutput {
     float4 Position : SV_POSITION;
-    float4 Color : COLOR;
+    float2 TexCoord : TEXCOORD0;
 };
 
 cbuffer AspectRatioBuffer : register(b0) {
@@ -29,8 +32,7 @@ VertexOutput main(VertexInput input) {
     
     output.Position = float4(adjustedPosition, 0.0f, 1.0f);
     
-    float3 color = input.Color * input.Brightness;
-    output.Color = float4(color, 1.0);
+    output.TexCoord = input.TexCoord;
     
     return output;
 }

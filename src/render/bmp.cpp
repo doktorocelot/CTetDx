@@ -1,7 +1,5 @@
 #include "bmp.hpp";
 
-#include <cstdlib>
-#include <cstring>
 
 bool bmp_isValid(unsigned char *bmpData, uint32_t size) {
     if (size < 2) return false;
@@ -14,27 +12,45 @@ bool bmp_isValid(unsigned char *bmpData, uint32_t size) {
 #define IMG_HEIGHT_OFFSET 0x16
 #define COLOR_DEPTH_OFFSET 0x1c
 
-BmpImage bmp_createFromLoadedFileBuffer(unsigned char *bmpData) {
+size_t static inline getBmpImageDataOffset(unsigned char *bmpData) {
+    return *reinterpret_cast<uint32_t *>(bmpData + IMAGE_DATA_PTR_OFFSET);;
+}
+
+BmpImage bmp_init(unsigned char *bmpData, unsigned char *buffer) {
     BmpImage image {};
 
     if (*reinterpret_cast<uint16_t *>(bmpData + COLOR_DEPTH_OFFSET) != 24) {
         return {.imageData = nullptr};
     }
 
-    const size_t fileSize = *reinterpret_cast<uint32_t *>(bmpData + FILE_SIZE_OFFSET);
-    const size_t imageDataOffset = *reinterpret_cast<uint32_t *>(bmpData + IMAGE_DATA_PTR_OFFSET);
-    const size_t bmpBufferSize = fileSize - imageDataOffset;
+    const size_t imageDataOffset = getBmpImageDataOffset(bmpData);
+    const size_t bmpBufferSize = bmp_getBufferSize(bmpData);
 
-    image.imageData = static_cast<unsigned char *>(malloc(bmpBufferSize));
+    image.imageData = buffer;
 
-    memcpy(image.imageData, bmpData + imageDataOffset, bmpBufferSize);
     
     image.width = *reinterpret_cast<int32_t *>(bmpData + IMG_WIDTH_OFFSET);
     image.height = *reinterpret_cast<int32_t *>(bmpData + IMG_HEIGHT_OFFSET);
+
+    const unsigned long long totalPixels = image.width * image.height;
+
+    const unsigned char *fileDataPtr = bmpData + imageDataOffset;
+    unsigned char *imgDataPtr = buffer;
+    for (int i = 0; i < totalPixels; i++) {
+        imgDataPtr[0] = fileDataPtr[0];
+        imgDataPtr[1] = fileDataPtr[1];
+        imgDataPtr[2] = fileDataPtr[2];
+        imgDataPtr[3] = 0xFF;
+        
+        fileDataPtr += 3;
+        imgDataPtr += 4;
+    }
     
     return image;
 }
 
-void bmp_destroy(BmpImage *bmp) {
-    free(bmp->imageData);
+size_t bmp_getBufferSize(unsigned char *bmpData) {
+    const size_t fileSize = *reinterpret_cast<uint32_t *>(bmpData + FILE_SIZE_OFFSET);
+    const size_t imageDataOffset = getBmpImageDataOffset(bmpData);
+    return (fileSize - imageDataOffset) + (fileSize - imageDataOffset) / 3;
 }
