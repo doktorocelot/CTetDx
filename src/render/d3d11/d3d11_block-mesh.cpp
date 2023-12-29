@@ -74,19 +74,19 @@ static void createBlockMeshShader(D3d11Mesh *blockMesh, ID3D11Device *device, ID
                     D3D11_INPUT_PER_VERTEX_DATA,
                     0,
                 
+            },
+            {
+                    "ADDCOLOR",
+                    0,
+                    DXGI_FORMAT_R32G32B32_FLOAT,
+                    0,
+                    sizeof(float) * 2 + sizeof(float) + sizeof(unsigned int) + sizeof(float) * 2,
+                    D3D11_INPUT_PER_VERTEX_DATA,
+                    0,
             }
-            // {
-            //         "COLOR",
-            //         0,
-            //         DXGI_FORMAT_R32G32B32_FLOAT,
-            //         0,
-            //         sizeof(float) * 2 + sizeof(float) + sizeof(unsigned int),
-            //         D3D11_INPUT_PER_VERTEX_DATA,
-            //         0,
-            // }
     };
     shaderPair_init(&blockMesh->shaders, device, L"resources\\shaders\\BlockVertex.hlsl",
-                    L"resources\\shaders\\BlockPixel.hlsl", layoutDesc, 4);
+                    L"resources\\shaders\\BlockPixel.hlsl", layoutDesc, sizeof(layoutDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC));
     shaderPair_pushCBufferVs(&blockMesh->shaders, aspectRatioBuffer);
 }
 

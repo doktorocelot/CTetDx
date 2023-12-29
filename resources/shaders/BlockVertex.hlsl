@@ -3,12 +3,14 @@ struct VertexInput {
     float Brightness : BRIGHTNESS;
     bool Enabled : ENABLED;
     float2 TexCoord : TEXCOORD0;
+    float3 AddColor : ADDCOLOR;
 };
 
 struct VertexOutput {
     float4 Position : SV_POSITION;
     float2 TexCoord : TEXCOORD0;
     float Brightness : BRIGHTNESS;
+    float3 AddColor : ADDCOLOR;
 };
 
 cbuffer AspectRatioBuffer : register(b0) {
@@ -32,6 +34,7 @@ VertexOutput main(VertexInput input) {
     
     output.TexCoord = input.TexCoord;
     output.Brightness = input.Brightness;    
+    output.AddColor = input.AddColor;
 
     return output;
 }

@@ -11,8 +11,8 @@ struct BlockVertex {
     Vector2 position;
     float brightness;
     bool enabled;
-    // Vector3 color;
     Vector2 texCoords;
+    Vector3 addColor;
 };
 
 struct BlockGroup {

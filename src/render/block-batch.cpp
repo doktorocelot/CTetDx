@@ -36,6 +36,12 @@ static constexpr RectAbsolute TEX_COORDS_LUT[]{
     {0.611328125, 0.80078125, 0.39453125, 0.583984375},
 };
 
+static void setBlockAddColor(BlockGroup *group, const Vector3 color) {
+    for (int i = 0; i < BLOCK_VERTEX_COUNT; i++) {
+        group->vertices[i].addColor = color;
+    }
+}
+
 static void setBlockUv(BlockGroup *group, const RectAbsolute coords) {
     group->vertices[0].texCoords = {coords.left, coords.top};
     group->vertices[1].texCoords = {coords.right, coords.top};
@@ -157,16 +163,20 @@ static void blockBatch_stageField(const CTetEngine *engine, BlockBatch *batch) {
     for (int y = 0; y < CT_TOTAL_FIELD_HEIGHT; y++) {
         for (int x = 0; x < CT_FIELD_WIDTH; x++) {
             const auto block = ctEngine_getBlockAtFieldLocation(engine, {x, y});
+            auto group = &batch->field[y][x];
             if (block->color == CTetBlockColor_NONE) {
-                setBlockEnabled(&batch->field[y][x], false);
+                setBlockEnabled(group, false);
+                setBlockAddColor(group, {});
                 continue;
             }
-            setBlockEnabled(&batch->field[y][x], true);
+            setBlockEnabled(group, true);
             if (ctEngine_getTimestamp(engine) - block->lockedTimestamp < LOCK_FLASH_TIMER) {
-                setBlockBrightness(&batch->field[y][x], 1);
+                setBlockBrightness(group, 1);
+                setBlockAddColor(group, {1.0, 1.0, 1.0});
             } else {
-                setBlockBrightness(&batch->field[y][x], 0.8f);
-                setBlockColorWithCTetColor(&batch->field[y][x], block->color);    
+                setBlockBrightness(group, 0.8f);
+                setBlockColorWithCTetColor(group, block->color);
+                setBlockAddColor(group, {});
             }
         }
     }
