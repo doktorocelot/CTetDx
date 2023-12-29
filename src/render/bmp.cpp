@@ -37,9 +37,9 @@ BmpImage bmp_init(unsigned char *bmpData, unsigned char *buffer) {
     const unsigned char *fileDataPtr = bmpData + imageDataOffset;
     unsigned char *imgDataPtr = buffer;
     for (int i = 0; i < totalPixels; i++) {
-        imgDataPtr[0] = fileDataPtr[0];
+        imgDataPtr[0] = fileDataPtr[2];
         imgDataPtr[1] = fileDataPtr[1];
-        imgDataPtr[2] = fileDataPtr[2];
+        imgDataPtr[2] = fileDataPtr[0];
         imgDataPtr[3] = 0xFF;
         
         fileDataPtr += 3;
