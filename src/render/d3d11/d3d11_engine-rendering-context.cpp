@@ -12,9 +12,9 @@ void d3d11EngineRenderingCtx_init(D3d11EngineRenderingCtx *ctx, ID3D11Device *de
     createFrameMesh(&ctx->frameMesh, device, aspectRatioBuffer);
 
     auto blockSkinTex = d3d11_loadBlockSkin(device);
-    ctx->blockSkinTexture = blockSkinTex;
-    ctx->blockSkinSrv = d3d11_createSrvFromTexture(device, blockSkinTex);
-    ctx->blockSkinSampler = d3d11_createBlockSampler(device);
+    ctx->blockSkinTexture.texture = blockSkinTex;
+    ctx->blockSkinTexture.srv = d3d11_createSrvFromTexture(device, blockSkinTex);
+    ctx->blockSkinTexture.sampler = d3d11_createBlockSampler(device);
 }
 
 void updateBlockBatchInMesh(BlockBatch *batch, D3d11Mesh *mesh, CTetEngine *engine, ID3D11DeviceContext *deviceContext) {

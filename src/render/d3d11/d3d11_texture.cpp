@@ -85,3 +85,8 @@ ID3D11SamplerState *d3d11_createBlockSampler(ID3D11Device *device) {
     return samplerState;
 }
 
+void d3d11Texture_use(const D3d11Texture *texture, ID3D11DeviceContext *deviceContext) {
+    deviceContext->PSSetShaderResources(0, 1, &texture->srv);
+    deviceContext->PSSetSamplers(0, 1, &texture->sampler);
+}
+
