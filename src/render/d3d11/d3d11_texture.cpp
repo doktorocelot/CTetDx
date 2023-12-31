@@ -48,6 +48,8 @@ ID3D11Texture2D *d3d11_loadBlockSkin(ID3D11Device *device) {
     const HRESULT result = device->CreateTexture2D(&textureDesc, &textureData, &texture);
     win32_checkResult(result, "CreateTexture2D");
 
+    win32_deallocateMemory(skinImage.imageData);
+    
     return texture;
 }
 
