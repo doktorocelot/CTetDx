@@ -11,7 +11,7 @@ void d3d11EngineRenderingCtx_init(D3d11EngineRenderingCtx *ctx, ID3D11Device *de
     createBlockMesh(&ctx->blockBatch, &ctx->blockMesh, device, aspectRatioBuffer);
     createFrameMesh(&ctx->frameMesh, device, aspectRatioBuffer);
 
-    auto blockSkinTex = d3d11_loadBlockSkin(device);
+    const auto blockSkinTex = d3d11_loadStaticTextureFromBmp(device, L"resources\\img\\skin.bmp");
     ctx->blockSkinTexture.texture = blockSkinTex;
     ctx->blockSkinTexture.srv = d3d11_createSrvFromTexture(device, blockSkinTex);
     ctx->blockSkinTexture.sampler = d3d11_createBlockSampler(device);

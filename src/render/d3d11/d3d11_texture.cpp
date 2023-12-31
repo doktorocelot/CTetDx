@@ -6,10 +6,12 @@
 #include "../../win32/win32_kill-program.hpp"
 #include "../../win32/win32_memory.hpp"
 
-ID3D11Texture2D *d3d11_loadBlockSkin(ID3D11Device *device) {
+#include <string>
+
+ID3D11Texture2D *d3d11_loadStaticTextureFromBmp(ID3D11Device *device, const wchar_t *path) {
     wchar_t filePath[MAX_PATH];
 
-    win32_setCompleteFilePath(filePath, MAX_PATH, L"resources\\img\\skin.bmp");
+    win32_setCompleteFilePath(filePath, MAX_PATH, path);
 
     unsigned char *skinImgFileData = nullptr;
     BmpImage skinImage;
@@ -25,7 +27,8 @@ ID3D11Texture2D *d3d11_loadBlockSkin(ID3D11Device *device) {
             );
         win32_deallocateMemory(skinImgFileData);
     } else {
-        win32_killProgram(L"Could not find block skin.");
+        const std::wstring errorMessage = L"Could not load static texture " + std::wstring(path);
+        win32_killProgram(errorMessage.c_str());
         return nullptr;
     }
     
