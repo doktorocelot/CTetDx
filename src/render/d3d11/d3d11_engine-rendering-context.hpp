@@ -17,6 +17,7 @@ struct D3d11EngineRenderingCtx {
     D3d11Texture fontTexture;
     TextRenderer textRenderer;
     D3d11Mesh textMesh;
+    ID3D11BlendState *textBlendState;
 };
 
 void d3d11EngineRenderingCtx_init(D3d11EngineRenderingCtx *ctx, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer);

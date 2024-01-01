@@ -105,7 +105,9 @@ void d3d11Renderer_drawFrame(D3d11Renderer *renderer, CTetEngine *engine, D3d11E
     
     d3d11Texture_use(&context->fontTexture, renderer->deviceContext);
     mesh_use(&context->textMesh, renderer->deviceContext);
+    renderer->deviceContext->OMSetBlendState(context->textBlendState, nullptr, 0xFFFFFFFF);
     mesh_draw(&context->textMesh, renderer->deviceContext);
+    renderer->deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     
     const HRESULT r = renderer->swapChain->Present(0, 0);
     win32_checkResult(r, "SwapChain Present");

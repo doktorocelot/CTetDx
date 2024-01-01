@@ -105,8 +105,25 @@ void d3d11EngineRenderingCtx_init(D3d11EngineRenderingCtx *ctx, ID3D11Device *de
         return;
     }    
     textRenderer_init(&ctx->textRenderer, fontData, fontDataSize, fontTexHeight);
-    createTextMesh(&ctx->textMesh, &ctx->textRenderer, device, aspectRatioBuffer);
     win32_deallocateMemory(fontData);
+    
+    // font mesh
+    createTextMesh(&ctx->textMesh, &ctx->textRenderer, device, aspectRatioBuffer);
+
+    // font blendstate
+    D3D11_BLEND_DESC blendDesc = {};
+    blendDesc.AlphaToCoverageEnable = false;
+    blendDesc.IndependentBlendEnable = false;
+    blendDesc.RenderTarget[0].BlendEnable = true;
+    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    const HRESULT result = device->CreateBlendState(&blendDesc, &ctx->textBlendState);
+    win32_checkResult(result, "CreateBlendState");
 }
 
 void updateTextMesh(const TextRenderer *textRenderer, D3d11Mesh *mesh, ID3D11DeviceContext *deviceContext) {
