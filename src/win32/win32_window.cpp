@@ -158,24 +158,39 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     constexpr float TIME_BETWEEN_RENDERS = 1.0f / 240;
     float timeSinceLastRender = 0;
 
-    Text texts[] = {
-        {
-            .string = "NEXT",
-            .position = {CT_FIELD_WIDTH / 2 + 1,
-                         CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
-            .size = 1.5,
-            .alignment = TextAlignment_LEFT,
-        },
-        {
-            .string = "HOLD",
-            .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                         CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
-            .size = 1.5,
-            .alignment = TextAlignment_RIGHT,
-        },
+    Text texts[16] = {};
+    texts[0] = {
+        .string = "NEXT",
+        .position = {CT_FIELD_WIDTH / 2 + 1,
+                     CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
+        .size = 1.5,
+        .alignment = TextAlignment_LEFT,
     };
-    textRenderer_setText(&ctx.textRenderer, texts, sizeof(texts) / sizeof(Text));
+    texts[1] = {
+        .string = "HOLD",
+        .position = {-(CT_FIELD_WIDTH / 2 + 1),
+                     CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
+        .size = 1.5,
+        .alignment = TextAlignment_RIGHT,
+    };
+    texts[2] = {
+        .string = "Lines",
+        .position = {-(CT_FIELD_WIDTH / 2 + 1),
+                     -3},
+        .size = 1,
+        .alignment = TextAlignment_RIGHT,
+    };
 
+    constexpr int LINES_TEXT_BYTES = 6;
+    char linesText[LINES_TEXT_BYTES] = {};
+    texts[3] = {
+        .string = linesText,
+        .position = {-(CT_FIELD_WIDTH / 2 + 1),
+                     -4.3},
+        .size = 1.5,
+        .alignment = TextAlignment_RIGHT,
+    };
+    
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
@@ -251,6 +266,10 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
         if (timeSinceLastRender >= TIME_BETWEEN_RENDERS) {
             fpsCounter_pushFrameTime(fpsCounterDraw, timeSinceLastRender);
             timeSinceLastRender -= TIME_BETWEEN_RENDERS;
+
+            snprintf(linesText, LINES_TEXT_BYTES, "%d", ctEngine_getStats(engine)->lines);
+            textRenderer_setText(&ctx.textRenderer, texts, sizeof(texts) / sizeof(Text));
+
             d3d11Renderer_drawFrame(&window->d3d11Renderer, engine, &ctx);
         }
     }

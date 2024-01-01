@@ -35,7 +35,10 @@ void textRenderer_setText(TextRenderer *textRenderer, Text *texts, size_t textCo
     textRenderer->activeCharCount = 0;
     for (int i = 0; i < textCount; i++) {
         const Text text = texts[i];
+        
         const char *string = text.string;
+        if (string == nullptr) continue;
+        
         caret = text.position;
         const int size = text.size;
         const TextAlignment alignment = text.alignment;
