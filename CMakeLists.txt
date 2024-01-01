@@ -41,6 +41,8 @@ set(SOURCES
         src/math/vector3.hpp
         src/math/vector2-cross-ctet.hpp
         src/math/rect.hpp
+        src/render/text.hpp
+        src/render/text.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES} ${PLATFORM_SOURCES})

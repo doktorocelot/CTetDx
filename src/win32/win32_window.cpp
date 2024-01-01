@@ -158,6 +158,8 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     constexpr float TIME_BETWEEN_RENDERS = 1.0f / 240;
     float timeSinceLastRender = 0;
 
+    textRenderer_setText(&ctx.textRenderer, "Hello, world!");
+
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);

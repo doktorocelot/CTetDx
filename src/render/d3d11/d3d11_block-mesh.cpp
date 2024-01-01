@@ -18,7 +18,7 @@ static void createBlockBatchIndexBuffer(D3d11Mesh *blockMesh, ID3D11Device *devi
     }
 
     d3d11_createBuffer(device, indices, &blockMesh->indexBuffer, {
-            .ByteWidth = sizeof(UINT) * BLOCK_BATCH_INDICES,
+            .ByteWidth = sizeof(indices),
             .Usage = D3D11_USAGE_DEFAULT,
             .BindFlags = D3D11_BIND_INDEX_BUFFER,
     });

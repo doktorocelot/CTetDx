@@ -1,0 +1,34 @@
+#pragma once
+#include "../math/rect.hpp"
+#include "../math/vector2.hpp"
+
+#define GLYPH_LUT_LENGTH 128
+
+#define CHAR_QUAD_VERT_COUNT 4
+#define MAX_CHAR_QUADS 1024
+
+struct Glyph {
+    float advance;
+    Rect triBounds;
+    Rect pixelOffset;
+};
+
+struct CharVertex {
+    Vector2 position;
+    Vector2 texCoords;
+};
+
+struct TextRenderer {
+    Glyph glyphs[GLYPH_LUT_LENGTH];
+    CharVertex chars[MAX_CHAR_QUADS][CHAR_QUAD_VERT_COUNT];
+    size_t activeCharCount;
+};
+
+void textRenderer_init(
+    TextRenderer *textRenderer,
+    unsigned char *rawGlyphData,
+    size_t dataLen,
+    float imgResolution
+    );
+
+void textRenderer_setText(TextRenderer *textRenderer, const char *text);

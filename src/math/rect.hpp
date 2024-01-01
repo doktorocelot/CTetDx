@@ -1,6 +1,6 @@
 #pragma once
 
-struct RectAbsolute {
+struct Rect {
     float top;
     float bottom;
     float left;

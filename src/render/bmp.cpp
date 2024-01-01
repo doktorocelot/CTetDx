@@ -24,7 +24,6 @@ BmpImage bmp_init(unsigned char *bmpData, unsigned char *buffer) {
     }
 
     const size_t imageDataOffset = getBmpImageDataOffset(bmpData);
-    const size_t bmpBufferSize = bmp_getBufferSize(bmpData);
 
     image.imageData = buffer;
 
@@ -32,7 +31,7 @@ BmpImage bmp_init(unsigned char *bmpData, unsigned char *buffer) {
     image.width = *reinterpret_cast<int32_t *>(bmpData + IMG_WIDTH_OFFSET);
     image.height = *reinterpret_cast<int32_t *>(bmpData + IMG_HEIGHT_OFFSET);
 
-    const unsigned long long totalPixels = image.width * image.height;
+    const size_t totalPixels = image.width * image.height;
 
     const unsigned char *fileDataPtr = bmpData + imageDataOffset;
     unsigned char *imgDataPtr = buffer;

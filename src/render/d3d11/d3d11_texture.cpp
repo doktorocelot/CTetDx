@@ -8,7 +8,7 @@
 
 #include <string>
 
-ID3D11Texture2D *d3d11_loadStaticTextureFromBmp(ID3D11Device *device, const wchar_t *path) {
+ID3D11Texture2D *d3d11_loadStaticTextureFromBmp(ID3D11Device *device, const wchar_t *path, int *outHeight) {
     wchar_t filePath[MAX_PATH];
 
     win32_setCompleteFilePath(filePath, MAX_PATH, path);
@@ -19,12 +19,14 @@ ID3D11Texture2D *d3d11_loadStaticTextureFromBmp(ID3D11Device *device, const wcha
     if (win32_fileExists(filePath)) {
         HANDLE skinImgHandle = win32_openFile(filePath);
         skinImgFileData = win32_loadFileIntoNewVirtualBuffer(skinImgHandle);
+        win32_closeFile(skinImgHandle);
         skinImage = bmp_init(
             skinImgFileData,
             static_cast<unsigned char *>(win32_allocateMemory(
                 bmp_getBufferSize(skinImgFileData)
                 ))
             );
+        if (skinImage.imageData == nullptr) win32_killProgram(L"BMP file is invalid.");
         win32_deallocateMemory(skinImgFileData);
     } else {
         const std::wstring errorMessage = L"Could not load static texture " + std::wstring(path);
@@ -52,6 +54,8 @@ ID3D11Texture2D *d3d11_loadStaticTextureFromBmp(ID3D11Device *device, const wcha
     win32_checkResult(result, "CreateTexture2D");
 
     win32_deallocateMemory(skinImage.imageData);
+
+    if (outHeight != nullptr) *outHeight = skinImage.height;
     
     return texture;
 }
@@ -69,7 +73,7 @@ ID3D11ShaderResourceView *d3d11_createSrvFromTexture(ID3D11Device *device, ID3D1
     return srv;
 }
 
-ID3D11SamplerState *d3d11_createBlockSampler(ID3D11Device *device) {
+ID3D11SamplerState *d3d11_createBasicSampler(ID3D11Device *device) {
     D3D11_SAMPLER_DESC samplerDesc = {};
 
     samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;

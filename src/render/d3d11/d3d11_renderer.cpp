@@ -101,6 +101,12 @@ void d3d11Renderer_drawFrame(D3d11Renderer *renderer, CTetEngine *engine, D3d11E
     mesh_use(&context->blockMesh, renderer->deviceContext);
     mesh_draw(&context->blockMesh, renderer->deviceContext);
 
+    updateTextMesh(&context->textRenderer, &context->textMesh, renderer->deviceContext);
+    
+    d3d11Texture_use(&context->fontTexture, renderer->deviceContext);
+    mesh_use(&context->textMesh, renderer->deviceContext);
+    mesh_draw(&context->textMesh, renderer->deviceContext);
+    
     const HRESULT r = renderer->swapChain->Present(0, 0);
     win32_checkResult(r, "SwapChain Present");
 }
