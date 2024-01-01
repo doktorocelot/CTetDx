@@ -158,7 +158,14 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     constexpr float TIME_BETWEEN_RENDERS = 1.0f / 240;
     float timeSinceLastRender = 0;
 
-    textRenderer_setText(&ctx.textRenderer, "Hello, world!");
+    Text texts[] = {
+        {
+            .string = "NEXT",
+            .position = {CT_FIELD_WIDTH / 2 + 1, CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
+            .size = 1.5,
+        }
+    };
+    textRenderer_setText(&ctx.textRenderer, texts, sizeof(texts) / sizeof(Text));
 
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {

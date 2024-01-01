@@ -29,36 +29,43 @@ void textRenderer_init(
     text_initGlyphsFromBin(textRenderer->glyphs, rawGlyphData, dataLen, imgResolution);
 }
 
-void textRenderer_setText(TextRenderer *textRenderer, const char *text) {
+void textRenderer_setText(TextRenderer *textRenderer, Text *texts, size_t textCount) {
     Vector2 caret = {};
-    int i = 0;
+    int charIndex = 0;
     textRenderer->activeCharCount = 0;
-    while (*text != '\0') {
-        if (*text < ' ') {
-            text++;
-            continue;
-        }
-        if (*text == ' ') {
-            caret.x += textRenderer->glyphs[' '].advance;
-            text++;
-            continue;
-        }
-        const Glyph glyph = textRenderer->glyphs[*text];
+    for (int i = 0; i < textCount; i++) {
+        const Text text = texts[i];
+        const char *string = text.string;
+        caret = text.position;
+        const int size = text.size;
+        while (*string != '\0') {
+            if (*string < ' ') {
+                string++;
+                continue;
+            }
+            if (*string == ' ') {
+                caret.x += textRenderer->glyphs[' '].advance;
+                string++;
+                continue;
+            }
+            const auto [advance, triBounds, pixelOffset] = textRenderer->glyphs[*string];
         
-        textRenderer->chars[i][0].position = vector2_addToNew({glyph.triBounds.left, glyph.triBounds.bottom}, caret);
-        textRenderer->chars[i][1].position = vector2_addToNew({glyph.triBounds.right, glyph.triBounds.bottom}, caret);
-        textRenderer->chars[i][2].position = vector2_addToNew({glyph.triBounds.left, glyph.triBounds.top}, caret);
-        textRenderer->chars[i][3].position = vector2_addToNew({glyph.triBounds.right, glyph.triBounds.top}, caret);
+            textRenderer->chars[charIndex][0].position = vector2_addToNew({triBounds.left * size, triBounds.bottom * size}, caret);
+            textRenderer->chars[charIndex][1].position = vector2_addToNew({triBounds.right * size, triBounds.bottom * size}, caret);
+            textRenderer->chars[charIndex][2].position = vector2_addToNew({triBounds.left * size, triBounds.top * size}, caret);
+            textRenderer->chars[charIndex][3].position = vector2_addToNew({triBounds.right * size, triBounds.top * size}, caret);
 
-        textRenderer->chars[i][0].texCoords = {glyph.pixelOffset.left, glyph.pixelOffset.bottom};
-        textRenderer->chars[i][1].texCoords = {glyph.pixelOffset.right, glyph.pixelOffset.bottom};
-        textRenderer->chars[i][2].texCoords = {glyph.pixelOffset.left, glyph.pixelOffset.top};
-        textRenderer->chars[i][3].texCoords = {glyph.pixelOffset.right, glyph.pixelOffset.top};
+            textRenderer->chars[charIndex][0].texCoords = {pixelOffset.left, pixelOffset.bottom};
+            textRenderer->chars[charIndex][1].texCoords = {pixelOffset.right, pixelOffset.bottom};
+            textRenderer->chars[charIndex][2].texCoords = {pixelOffset.left, pixelOffset.top};
+            textRenderer->chars[charIndex][3].texCoords = {pixelOffset.right, pixelOffset.top};
 
-        caret.x += glyph.advance;
+            caret.x += advance * size;
         
-        textRenderer->activeCharCount++;
-        i++;
-        text++;
+            textRenderer->activeCharCount++;
+            charIndex++;
+            string++;
+        }
     }
+
 }

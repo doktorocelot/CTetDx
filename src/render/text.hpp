@@ -24,6 +24,12 @@ struct TextRenderer {
     size_t activeCharCount;
 };
 
+struct Text {
+    const char *string;
+    Vector2 position;
+    float size;
+};
+
 void textRenderer_init(
     TextRenderer *textRenderer,
     unsigned char *rawGlyphData,
@@ -31,4 +37,4 @@ void textRenderer_init(
     float imgResolution
     );
 
-void textRenderer_setText(TextRenderer *textRenderer, const char *text);
+void textRenderer_setText(TextRenderer *textRenderer, Text *texts, size_t textCount);
