@@ -203,7 +203,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     constexpr int PIECES_TEXT_BYTES = 6;
     char piecesText[PIECES_TEXT_BYTES] = {};
     texts[5] = {
-        .string = linesText,
+        .string = piecesText,
         .position = {-(CT_FIELD_WIDTH / 2 + 1),
                      -7.3},
         .size = 1.5,
