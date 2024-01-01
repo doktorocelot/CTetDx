@@ -161,9 +161,18 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     Text texts[] = {
         {
             .string = "NEXT",
-            .position = {CT_FIELD_WIDTH / 2 + 1, CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
+            .position = {CT_FIELD_WIDTH / 2 + 1,
+                         CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
             .size = 1.5,
-        }
+            .alignment = TextAlignment_LEFT,
+        },
+        {
+            .string = "HOLD",
+            .position = {-(CT_FIELD_WIDTH / 2 + 1),
+                         CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
+            .size = 1.5,
+            .alignment = TextAlignment_RIGHT,
+        },
     };
     textRenderer_setText(&ctx.textRenderer, texts, sizeof(texts) / sizeof(Text));
 

@@ -24,10 +24,17 @@ struct TextRenderer {
     size_t activeCharCount;
 };
 
+enum TextAlignment {
+    TextAlignment_LEFT,
+    TextAlignment_CENTER,
+    TextAlignment_RIGHT,
+};
+
 struct Text {
     const char *string;
     Vector2 position;
     float size;
+    TextAlignment alignment;
 };
 
 void textRenderer_init(

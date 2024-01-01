@@ -38,6 +38,10 @@ void textRenderer_setText(TextRenderer *textRenderer, Text *texts, size_t textCo
         const char *string = text.string;
         caret = text.position;
         const int size = text.size;
+        const TextAlignment alignment = text.alignment;
+        const int startingCharIndex = charIndex;
+        int startingX = caret.x;
+        
         while (*string != '\0') {
             if (*string < ' ') {
                 string++;
@@ -65,6 +69,18 @@ void textRenderer_setText(TextRenderer *textRenderer, Text *texts, size_t textCo
             textRenderer->activeCharCount++;
             charIndex++;
             string++;
+        }
+        
+        if (alignment != TextAlignment_LEFT) {
+            float shift = caret.x - startingX;
+            if (alignment == TextAlignment_CENTER) shift /= 2;
+            const int total = charIndex;
+            for (int j = startingCharIndex; j < total; j++) {
+                textRenderer->chars[j][0].position.x -= shift;
+                textRenderer->chars[j][1].position.x -= shift;
+                textRenderer->chars[j][2].position.x -= shift;
+                textRenderer->chars[j][3].position.x -= shift;
+            }
         }
     }
 
