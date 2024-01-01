@@ -12,7 +12,7 @@ float SDF(float2 uv) {
     float dist = g_Texture.Sample(g_Sampler, uv).r;
 
     // choose a value for the smoothing radius
-    const float smoothing = 0.05f;
+    const float smoothing = 0.01f;
     float smoothed = smoothstep(0.5f - smoothing, 0.5f + smoothing, dist);
 
     return smoothed;
