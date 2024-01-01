@@ -173,6 +173,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
         .size = 1.5,
         .alignment = TextAlignment_RIGHT,
     };
+    
     texts[2] = {
         .string = "Lines",
         .position = {-(CT_FIELD_WIDTH / 2 + 1),
@@ -187,6 +188,24 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
         .string = linesText,
         .position = {-(CT_FIELD_WIDTH / 2 + 1),
                      -4.3},
+        .size = 1.5,
+        .alignment = TextAlignment_RIGHT,
+    };
+
+    texts[4] = {
+        .string = "Pieces",
+        .position = {-(CT_FIELD_WIDTH / 2 + 1),
+                     -6},
+        .size = 1,
+        .alignment = TextAlignment_RIGHT,
+    };
+
+    constexpr int PIECES_TEXT_BYTES = 6;
+    char piecesText[PIECES_TEXT_BYTES] = {};
+    texts[5] = {
+        .string = linesText,
+        .position = {-(CT_FIELD_WIDTH / 2 + 1),
+                     -7.3},
         .size = 1.5,
         .alignment = TextAlignment_RIGHT,
     };
@@ -267,7 +286,9 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
             fpsCounter_pushFrameTime(fpsCounterDraw, timeSinceLastRender);
             timeSinceLastRender -= TIME_BETWEEN_RENDERS;
 
-            snprintf(linesText, LINES_TEXT_BYTES, "%d", ctEngine_getStats(engine)->lines);
+            const CTetStats ctEngineGetStats = *ctEngine_getStats(engine);
+            snprintf(linesText, LINES_TEXT_BYTES, "%d", ctEngineGetStats.lines);
+            snprintf(piecesText, LINES_TEXT_BYTES, "%d", ctEngineGetStats.pieces);
             textRenderer_setText(&ctx.textRenderer, texts, sizeof(texts) / sizeof(Text));
 
             d3d11Renderer_drawFrame(&window->d3d11Renderer, engine, &ctx);
