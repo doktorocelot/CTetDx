@@ -40,7 +40,7 @@ void textRenderer_setText(TextRenderer *textRenderer, Text *texts, size_t textCo
         if (string == nullptr) continue;
         
         caret = text.position;
-        const int size = text.size;
+        const float size = text.size;
         const TextAlignment alignment = text.alignment;
         const int startingCharIndex = charIndex;
         int startingX = caret.x;

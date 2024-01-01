@@ -163,14 +163,14 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
         .string = "NEXT",
         .position = {CT_FIELD_WIDTH / 2 + 1,
                      CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
-        .size = 1.5,
+        .size = 1.2,
         .alignment = TextAlignment_LEFT,
     };
     texts[1] = {
         .string = "HOLD",
         .position = {-(CT_FIELD_WIDTH / 2 + 1),
                      CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
-        .size = 1.5,
+        .size = 1.2,
         .alignment = TextAlignment_RIGHT,
     };
     
@@ -187,7 +187,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     texts[3] = {
         .string = linesText,
         .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     -4.3},
+                     -4.5},
         .size = 1.5,
         .alignment = TextAlignment_RIGHT,
     };
@@ -205,7 +205,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     texts[5] = {
         .string = piecesText,
         .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     -7.3},
+                     -7.5},
         .size = 1.5,
         .alignment = TextAlignment_RIGHT,
     };
