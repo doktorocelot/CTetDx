@@ -228,6 +228,24 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
         .alignment = TextAlignment_RIGHT,
     };
     
+    texts[8] = {
+        .string = "Score",
+        .position = {-(CT_FIELD_WIDTH / 2 + 1),
+                     0},
+        .size = 1,
+        .alignment = TextAlignment_RIGHT,
+    };
+
+    constexpr int SCORE_TEXT_BYTES = 30;
+    char scoreText[SCORE_TEXT_BYTES] = {};
+    texts[9] = {
+        .string = scoreText,
+        .position = {-(CT_FIELD_WIDTH / 2 + 1),
+                     -1},
+        .size = 1,
+        .alignment = TextAlignment_RIGHT,
+    };
+    
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
@@ -306,8 +324,9 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
 
             const CTetStats ctEngineGetStats = *ctEngine_getStats(engine);
             snprintf(linesText, LINES_TEXT_BYTES, "%d", ctEngineGetStats.lines);
-            snprintf(piecesText, LINES_TEXT_BYTES, "%d", ctEngineGetStats.pieces);
-            snprintf(levelText, LINES_TEXT_BYTES, "%d", ctEngineGetStats.level);
+            snprintf(piecesText, PIECES_TEXT_BYTES, "%d", ctEngineGetStats.pieces);
+            snprintf(levelText, LEVEL_TEXT_BYTES, "%d", ctEngineGetStats.level);
+            snprintf(scoreText, SCORE_TEXT_BYTES, "%d", ctEngineGetStats.score);
             textRenderer_setText(&ctx.textRenderer, texts, sizeof(texts) / sizeof(Text));
 
             d3d11Renderer_drawFrame(&window->d3d11Renderer, engine, &ctx);
