@@ -209,6 +209,24 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
         .size = 1.5,
         .alignment = TextAlignment_RIGHT,
     };
+
+    texts[6] = {
+        .string = "Level",
+        .position = {-(CT_FIELD_WIDTH / 2 + 1),
+                     -9},
+        .size = 1,
+        .alignment = TextAlignment_RIGHT,
+    };
+
+    constexpr int LEVEL_TEXT_BYTES = 6;
+    char levelText[LEVEL_TEXT_BYTES] = {};
+    texts[7] = {
+        .string = levelText,
+        .position = {-(CT_FIELD_WIDTH / 2 + 1),
+                     -10.5},
+        .size = 1.5,
+        .alignment = TextAlignment_RIGHT,
+    };
     
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -289,6 +307,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
             const CTetStats ctEngineGetStats = *ctEngine_getStats(engine);
             snprintf(linesText, LINES_TEXT_BYTES, "%d", ctEngineGetStats.lines);
             snprintf(piecesText, LINES_TEXT_BYTES, "%d", ctEngineGetStats.pieces);
+            snprintf(levelText, LINES_TEXT_BYTES, "%d", ctEngineGetStats.level);
             textRenderer_setText(&ctx.textRenderer, texts, sizeof(texts) / sizeof(Text));
 
             d3d11Renderer_drawFrame(&window->d3d11Renderer, engine, &ctx);
