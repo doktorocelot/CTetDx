@@ -44,4 +44,4 @@ void textRenderer_init(
     float imgResolution
     );
 
-void textRenderer_setText(TextRenderer *textRenderer, Text *texts, size_t textCount);
+void textRenderer_setText(TextRenderer *textRenderer, const Text **texts, const size_t *lengths, size_t elementCount);

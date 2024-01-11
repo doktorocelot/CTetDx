@@ -157,94 +157,6 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
 
     constexpr float TIME_BETWEEN_RENDERS = 1.0f / 240;
     float timeSinceLastRender = 0;
-
-    Text texts[16] = {};
-    texts[0] = {
-        .string = "NEXT",
-        .position = {CT_FIELD_WIDTH / 2 + 1,
-                     CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
-        .size = 1.2,
-        .alignment = TextAlignment_LEFT,
-    };
-    texts[1] = {
-        .string = "HOLD",
-        .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
-        .size = 1.2,
-        .alignment = TextAlignment_RIGHT,
-    };
-    
-    texts[2] = {
-        .string = "Lines",
-        .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     -3},
-        .size = 1,
-        .alignment = TextAlignment_RIGHT,
-    };
-
-    constexpr int LINES_TEXT_BYTES = 6;
-    char linesText[LINES_TEXT_BYTES] = {};
-    texts[3] = {
-        .string = linesText,
-        .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     -4.5},
-        .size = 1.5,
-        .alignment = TextAlignment_RIGHT,
-    };
-
-    texts[4] = {
-        .string = "Pieces",
-        .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     -6},
-        .size = 1,
-        .alignment = TextAlignment_RIGHT,
-    };
-
-    constexpr int PIECES_TEXT_BYTES = 6;
-    char piecesText[PIECES_TEXT_BYTES] = {};
-    texts[5] = {
-        .string = piecesText,
-        .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     -7.5},
-        .size = 1.5,
-        .alignment = TextAlignment_RIGHT,
-    };
-
-    texts[6] = {
-        .string = "Level",
-        .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     -9},
-        .size = 1,
-        .alignment = TextAlignment_RIGHT,
-    };
-
-    constexpr int LEVEL_TEXT_BYTES = 6;
-    char levelText[LEVEL_TEXT_BYTES] = {};
-    texts[7] = {
-        .string = levelText,
-        .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     -10.5},
-        .size = 1.5,
-        .alignment = TextAlignment_RIGHT,
-    };
-    
-    texts[8] = {
-        .string = "Score",
-        .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     0},
-        .size = 1,
-        .alignment = TextAlignment_RIGHT,
-    };
-
-    constexpr int SCORE_TEXT_BYTES = 30;
-    char scoreText[SCORE_TEXT_BYTES] = {};
-    texts[9] = {
-        .string = scoreText,
-        .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     -1},
-        .size = 1,
-        .alignment = TextAlignment_RIGHT,
-    };
     
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -322,12 +234,10 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
             fpsCounter_pushFrameTime(fpsCounterDraw, timeSinceLastRender);
             timeSinceLastRender -= TIME_BETWEEN_RENDERS;
 
-            const CTetStats ctEngineGetStats = *ctEngine_getStats(engine);
-            snprintf(linesText, LINES_TEXT_BYTES, "%d", ctEngineGetStats.lines);
-            snprintf(piecesText, PIECES_TEXT_BYTES, "%d", ctEngineGetStats.pieces);
-            snprintf(levelText, LEVEL_TEXT_BYTES, "%d", ctEngineGetStats.level);
-            snprintf(scoreText, SCORE_TEXT_BYTES, "%d", ctEngineGetStats.score);
-            textRenderer_setText(&ctx.textRenderer, texts, sizeof(texts) / sizeof(Text));
+            ingameText_update(&ctx.ingameText, ctEngine_getStats(engine));
+            constexpr size_t lens[] = {INGAME_TEXT_LEN};
+            const Text *textList[] = {ctx.ingameText.texts};
+            textRenderer_setText(&ctx.textRenderer, textList, lens, 1);
 
             d3d11Renderer_drawFrame(&window->d3d11Renderer, engine, &ctx);
         }

@@ -124,6 +124,9 @@ void d3d11EngineRenderingCtx_init(D3d11EngineRenderingCtx *ctx, ID3D11Device *de
     blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     const HRESULT result = device->CreateBlendState(&blendDesc, &ctx->textBlendState);
     win32_checkResult(result, "CreateBlendState");
+
+    //text
+    ingameText_init(&ctx->ingameText);
 }
 
 void updateTextMesh(const TextRenderer *textRenderer, D3d11Mesh *mesh, ID3D11DeviceContext *deviceContext) {

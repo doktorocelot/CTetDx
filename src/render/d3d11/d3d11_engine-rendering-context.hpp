@@ -3,6 +3,7 @@
 #include "../block-batch.hpp"
 #include "d3d11_mesh.hpp"
 #include "d3d11_texture.hpp"
+#include "../ingame-text.hpp"
 #include "../text.hpp"
 
 struct alignas(16) AspectConstantBuffer {
@@ -18,6 +19,7 @@ struct D3d11EngineRenderingCtx {
     TextRenderer textRenderer;
     D3d11Mesh textMesh;
     ID3D11BlendState *textBlendState;
+    IngameText ingameText;
 };
 
 void d3d11EngineRenderingCtx_init(D3d11EngineRenderingCtx *ctx, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer);
