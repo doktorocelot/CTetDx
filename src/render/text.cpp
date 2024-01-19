@@ -55,7 +55,7 @@ void textRenderer_setText(TextRenderer *textRenderer, const Text **texts, const 
                     continue;
                 }
                 if (*string == ' ') {
-                    caret.x += textRenderer->glyphs[' '].advance;
+                    caret.x += textRenderer->glyphs[' '].advance * size;
                     string++;
                     continue;
                 }
