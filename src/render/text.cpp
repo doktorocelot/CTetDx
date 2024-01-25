@@ -45,21 +45,42 @@ void textRenderer_stageText(TextRenderer *textRenderer, const Text *texts, const
         
         Vector2 caret = text.position;
         const float size = text.size;
-        const TextAlignment alignment = text.alignment;
-        const int startingCharIndex = charIndex;
-        const int startingX = caret.x;
-        
+
+        // string length for alignment
+        float lineLen = 0; 
+        int stringLen = 0;
         while (*string != '\0') {
-            if (*string < ' ') {
-                string++;
+            if (const char current = *string; current >= ' ') {
+                lineLen += textRenderer->glyphs[current].advance * size;                
+            }
+            stringLen++;
+            string++;
+        }
+        string -= stringLen;
+
+        // alignment
+        switch (text.alignment) {
+        case TextAlignment_CENTER:
+            caret.x -= lineLen / 2;
+            break;
+        case TextAlignment_RIGHT:
+            caret.x -= lineLen;
+            break;
+        default:
+            break;
+        }
+
+        // create quads
+        for (int c = 0; c < stringLen; c++) {
+            const char currentChar = string[c];
+            if (currentChar < ' ') {
                 continue;
             }
-            if (*string == ' ') {
+            if (currentChar == ' ') {
                 caret.x += textRenderer->glyphs[' '].advance * size;
-                string++;
                 continue;
             }
-            const auto [advance, triBounds, pixelOffset] = textRenderer->glyphs[*string];
+            const auto [advance, triBounds, pixelOffset] = textRenderer->glyphs[currentChar];
         
             textRenderer->chars[charIndex][0].position = vector2_addToNew({triBounds.left * size, triBounds.bottom * size}, caret);
             textRenderer->chars[charIndex][1].position = vector2_addToNew({triBounds.right * size, triBounds.bottom * size}, caret);
@@ -74,20 +95,8 @@ void textRenderer_stageText(TextRenderer *textRenderer, const Text *texts, const
             caret.x += advance * size;
             
             charIndex++;
-            string++;
         }
         
-        if (alignment != TextAlignment_LEFT) {
-            float shift = caret.x - startingX;
-            if (alignment == TextAlignment_CENTER) shift /= 2;
-            const int total = charIndex;
-            for (int j = startingCharIndex; j < total; j++) {
-                textRenderer->chars[j][0].position.x -= shift;
-                textRenderer->chars[j][1].position.x -= shift;
-                textRenderer->chars[j][2].position.x -= shift;
-                textRenderer->chars[j][3].position.x -= shift;
-            }
-        }
     }
     textRenderer->activeCharCount = charIndex;
 }

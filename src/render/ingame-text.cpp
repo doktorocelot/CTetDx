@@ -19,19 +19,19 @@ const static char *PIECES_TEXT = "Pieces";
 
 void ingameText_init(IngameText *ingameText) {
     const auto texts = ingameText->texts;
+    constexpr float baseX = CT_FIELD_WIDTH / 2 + 3;
+    constexpr float baseY = CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5;
     texts[INDEX_NEXT] = {
         .string = NEXT_TEXT,
-        .position = {CT_FIELD_WIDTH / 2 + 1,
-                     CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
+        .position = {baseX, baseY},
         .size = 1.2,
-        .alignment = TextAlignment_LEFT,
+        .alignment = TextAlignment_CENTER,
     };
     texts[INDEX_HOLD] = {
         .string = HOLD_TEXT,
-        .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                     CT_VISIBLE_FIELD_HEIGHT / 2 + 0.5},
+        .position = {-baseX, baseY},
         .size = 1.2,
-        .alignment = TextAlignment_RIGHT,
+        .alignment = TextAlignment_CENTER,
     };
 
     constexpr int totalStats = 4;
@@ -45,17 +45,18 @@ void ingameText_init(IngameText *ingameText) {
     const float sizes[] = {1, 1.5f, 1.5f, 1.5f};
     int index = INDEX_SCORE_LABEL;
     for (int i = 0; i < totalStats; i++) {
+        constexpr float baseX = -(CT_FIELD_WIDTH / 2 + 1);
+        const float baseY = -3.0f * i;
         texts[index] = {
             .string = labels[i],
-            .position = {-(CT_FIELD_WIDTH / 2 + 1), -3.0f * i},
+            .position = {baseX, baseY},
             .size = 1,
             .alignment = TextAlignment_RIGHT,
         };
 
         texts[index + 1] = {
             .string = values[i],
-            .position = {-(CT_FIELD_WIDTH / 2 + 1),
-                         -3.0f * i - sizes[i]},
+            .position = {baseX, baseY - sizes[i]},
             .size = sizes[i],
             .alignment = TextAlignment_RIGHT,
         };
