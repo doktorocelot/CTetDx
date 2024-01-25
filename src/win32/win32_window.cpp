@@ -235,9 +235,8 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
             timeSinceLastRender -= TIME_BETWEEN_RENDERS;
 
             ingameText_update(&ctx.ingameText, ctEngine_getStats(engine));
-            constexpr size_t lens[] = {INGAME_TEXT_LEN};
-            const Text *textList[] = {ctx.ingameText.texts};
-            textRenderer_setText(&ctx.textRenderer, textList, lens, 1);
+            textRenderer_clearText(&ctx.textRenderer);
+            textRenderer_stageText(&ctx.textRenderer, ctx.ingameText.texts, INGAME_TEXT_LEN);
 
             d3d11Renderer_drawFrame(&window->d3d11Renderer, engine, &ctx);
         }
