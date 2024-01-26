@@ -11,14 +11,25 @@ static void createBlockBatchIndexBuffer(D3d11Mesh *blockMesh, ID3D11Device *devi
     blockMesh->indices = 6;
 }
 
+struct BlockVertex {
+    Vector2 position;
+    Vector2 texCoord;
+};
+
 static void createBlockBatchVertexBuffer(D3d11Mesh *blockMesh, ID3D11Device *device) {
-    constexpr Vector2 vertices[] = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
+    constexpr Rect baseTexCoords = {0.99609375, 0.806640625, 0.00390625, 0.193359375};
+    constexpr BlockVertex vertices[] = {
+        {0, 0, baseTexCoords.left, baseTexCoords.bottom},
+        {1, 0, baseTexCoords.right, baseTexCoords.bottom},
+        {0, 1, baseTexCoords.left, baseTexCoords.top},
+        {1, 1, baseTexCoords.right, baseTexCoords.top}}
+    ;
     d3d11_createBuffer(device, vertices, &blockMesh->vertexBuffer, {
             .ByteWidth = sizeof(vertices),
             .Usage = D3D11_USAGE_DEFAULT,
             .BindFlags = D3D11_BIND_VERTEX_BUFFER,
     });
-    blockMesh->stride = sizeof(Vector2);
+    blockMesh->stride = sizeof(BlockVertex);
 }
 
 static void createBlockBatchInstanceBuffer(const BlockInstance *instances, D3d11Mesh *blockMesh, ID3D11Device *device) {
@@ -44,11 +55,39 @@ static void createBlockMeshShader(D3d11Mesh *blockMesh, ID3D11Device *device, ID
                 0,
             },
             {
+                "TEXCOORD",
+                0,
+                DXGI_FORMAT_R32G32_FLOAT,
+                0,
+                sizeof(Vector2),
+                D3D11_INPUT_PER_VERTEX_DATA,
+                0,
+                            
+            },
+            {
                 "POSITION_INSTANCE",
                 0,
                 DXGI_FORMAT_R32G32_FLOAT,
                 1,
                 0,
+                D3D11_INPUT_PER_INSTANCE_DATA,
+                1,
+            },
+            {
+                "BRIGHTNESS_INSTANCE",
+                0,
+                DXGI_FORMAT_R32_FLOAT,
+                1,
+                sizeof(Vector2),
+                D3D11_INPUT_PER_INSTANCE_DATA,
+                1,
+            },
+            {
+                "TEXOFFSET_INSTANCE",
+                0,
+                DXGI_FORMAT_R32G32_FLOAT,
+                1,
+                sizeof(Vector2) + sizeof(float),
                 D3D11_INPUT_PER_INSTANCE_DATA,
                 1,
             },
