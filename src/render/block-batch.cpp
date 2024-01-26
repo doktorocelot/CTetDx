@@ -17,8 +17,10 @@ constexpr Vector2 TEXCOORD_OFFSET_LUT[] = {
     {0, -1},
     {1, -1},
     {2, -1},
+    {3, -1},
 };
 constexpr Vector2 TEXCOORD_LOCKED_HOLD_OFFSET = {0, -3};
+constexpr Vector2 TEXCOORD_LOCKED_HOLD_BONE_OFFSET = {1, -3};
 constexpr Vector2 TEXCOORD_GHOST_OFFSET = {1, -2};
 static void stageActive(const CTetEngine *engine, BlockBatch *batch) {
     const auto active = ctEngine_getActivePiece(engine);
@@ -121,7 +123,8 @@ static void stageHold(const CTetEngine *engine, BlockBatch *batch) {
     for (int i = 0; i < PIECE_BLOCK_COUNT; i++) {
         const auto coords = vector2_fromCtPoint(ctPoint_addToNew(holdOffset, heldPiece.coords[i]));
         const auto position = vector2_addToNew(offset, coords);;
-        const auto texOffset = ctEngine_holdIsLocked(engine) ? TEXCOORD_LOCKED_HOLD_OFFSET : TEXCOORD_OFFSET_LUT[heldPiece.blocks[i].color];
+        const auto lockedHoldOffset = heldPiece.blocks[i].color == CTetBlockColor_BONE ? TEXCOORD_LOCKED_HOLD_BONE_OFFSET : TEXCOORD_LOCKED_HOLD_OFFSET;
+        const auto texOffset = ctEngine_holdIsLocked(engine) ? lockedHoldOffset : TEXCOORD_OFFSET_LUT[heldPiece.blocks[i].color];
         addBlock(batch, {position, 1.0f, texOffset});
     }
 }
