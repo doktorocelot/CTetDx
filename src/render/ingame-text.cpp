@@ -67,27 +67,28 @@ void ingameText_init(IngameText *ingameText) {
 }
 
 void ingameText_update(IngameText *ingameText, const CTetStats *stats) {
-    char scoreTextUnformatted[SCORE_VALUE_TEXT_BYTES];
-    snprintf(scoreTextUnformatted, SCORE_VALUE_TEXT_BYTES, "%d", stats->score);
-    // Comma Separators for Score
-    const size_t n = strlen(scoreTextUnformatted);
-    int commaAccum = n < 4 ? 0 : n % 8 == 0 || n % 8 == 4 ? 2 : 1;
-    int originalTextIndex = 0;
-    for (int i = 0; i < SCORE_VALUE_TEXT_BYTES; i++) {
-        if (scoreTextUnformatted[originalTextIndex] == '\0') {
-            ingameText->scoreValueText[i] = '\0';
-            break;
-        }
-        if (commaAccum == 3) {
-            ingameText->scoreValueText[i] = ',';
-            commaAccum = 0;
-            continue;
-        }
-        ingameText->scoreValueText[i] = scoreTextUnformatted[originalTextIndex];
-        originalTextIndex++;
-        commaAccum++;
-    }
+    // char scoreTextUnformatted[SCORE_VALUE_TEXT_BYTES];
+    // snprintf(scoreTextUnformatted, SCORE_VALUE_TEXT_BYTES, "%d", stats->score);
+    // Comma Separators for Score TODO
+    // const size_t n = strlen(scoreTextUnformatted);
+    // int commaAccum = n < 4 ? 0 : n % 8 == 0 || n % 8 == 4 ? 2 : 1;
+    // int originalTextIndex = 0;
+    // for (int i = 0; i < SCORE_VALUE_TEXT_BYTES; i++) {
+    //     if (scoreTextUnformatted[originalTextIndex] == '\0') {
+    //         ingameText->scoreValueText[i] = '\0';
+    //         break;
+    //     }
+    //     if (commaAccum == 3) {
+    //         ingameText->scoreValueText[i] = ',';
+    //         commaAccum = 0;
+    //         continue;
+    //     }
+    //     ingameText->scoreValueText[i] = scoreTextUnformatted[originalTextIndex];
+    //     originalTextIndex++;
+    //     commaAccum++;
+    // }
     
+    snprintf(ingameText->scoreValueText, SCORE_VALUE_TEXT_BYTES, "%d", stats->score);
     snprintf(ingameText->levelValueText, REGULAR_VALUE_TEXT_BYTES, "%d", stats->level);
     snprintf(ingameText->linesValueText, REGULAR_VALUE_TEXT_BYTES, "%d", stats->lines);
     snprintf(ingameText->piecesValueText, REGULAR_VALUE_TEXT_BYTES, "%d", stats->pieces);
