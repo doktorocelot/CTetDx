@@ -7,20 +7,10 @@
 static constexpr int PIECE_BLOCK_COUNT = 4;
 static constexpr int BLOCK_VERTEX_COUNT = 4;
 
-struct BlockVertex {
-    Vector2 position;
-    float brightness;
-    bool enabled;
-    Vector2 texCoords;
-    Vector3 addColor;
-};
-
-struct BlockGroup {
-    BlockVertex vertices[BLOCK_VERTEX_COUNT];
-};
-
 struct BlockInstance {
     Vector2 position;
+    float brightness;
+    Vector2 texCoordOffset;
 };
 
 #define TOTAL_BLOCK_INSTANCES 1024

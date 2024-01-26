@@ -45,6 +45,7 @@ set(SOURCES
         src/render/text.cpp
         src/render/ingame-text.hpp
         src/render/ingame-text.cpp
+        src/math/two-numbers.hpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES} ${PLATFORM_SOURCES})
