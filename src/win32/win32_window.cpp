@@ -145,7 +145,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     controlTracker->keyAssign[static_cast<int>('R')] = Control_RETRY;
 
     auto fpsCounterUpdate = initializeFpsCounter(200);
-    auto fpsCounterDraw = initializeFpsCounter(1000);
+    auto fpsCounterDraw = initializeFpsCounter(50);
     
     std::locale locale("");
 
