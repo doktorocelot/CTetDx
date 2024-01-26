@@ -19,6 +19,7 @@ constexpr Vector2 TEXCOORD_OFFSET_LUT[] = {
     {2, -1},
 };
 constexpr Vector2 TEXCOORD_LOCKED_HOLD_OFFSET = {0, -3};
+constexpr Vector2 TEXCOORD_GHOST_OFFSET = {1, -2};
 static void stageActive(const CTetEngine *engine, BlockBatch *batch) {
     const auto active = ctEngine_getActivePiece(engine);
     const auto activePos = vector2_addToNew(
@@ -31,14 +32,16 @@ static void stageActive(const CTetEngine *engine, BlockBatch *batch) {
     for (int i = 0; i < CT_BLOCKS_PER_PIECE; i++) {
         auto position = vector2_fromCtPoint(active->coords[i]);
         vector2_add(&position, ghostPos);
-        addBlock(batch, {position, 0.4f, TEXCOORD_OFFSET_LUT[active->blocks[i].color]});
+        addBlock(batch, {position, 0.4f, TEXCOORD_GHOST_OFFSET});
     }
 
     //active
+    constexpr float ratio = 0.7f;
+    const float brightness = 1 - (1 - ctEngine_getLockDelayRemainingPercentage(engine)) * ratio;
     for (int i = 0; i < CT_BLOCKS_PER_PIECE; i++) {
         auto position = vector2_fromCtPoint(active->coords[i]);
         vector2_add(&position, activePos);
-        addBlock(batch, {position, 1.0f, TEXCOORD_OFFSET_LUT[active->blocks[i].color]});
+        addBlock(batch, {position, brightness, TEXCOORD_OFFSET_LUT[active->blocks[i].color]});
     }
 }
 
