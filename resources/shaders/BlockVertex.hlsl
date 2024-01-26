@@ -1,16 +1,10 @@
 struct VertexInput {
     float2 Position : POSITION;
-    float Brightness : BRIGHTNESS;
-    bool Enabled : ENABLED;
-    float2 TexCoord : TEXCOORD0;
-    float3 AddColor : ADDCOLOR;
+    float2 PositionInstance : POSITION_INSTANCE;
 };
 
 struct VertexOutput {
     float4 Position : SV_POSITION;
-    float2 TexCoord : TEXCOORD0;
-    float Brightness : BRIGHTNESS;
-    float3 AddColor : ADDCOLOR;
 };
 
 cbuffer AspectRatioBuffer : register(b0) {
@@ -19,22 +13,20 @@ cbuffer AspectRatioBuffer : register(b0) {
 
 VertexOutput main(VertexInput input) {
     VertexOutput output;
-    
-    float2 scaledPosition = (input.Position / 12.0f) * input.Enabled;
-    
-    float2 adjustedPosition = scaledPosition;
+    float2 finalPos = input.Position + input.PositionInstance;
+    finalPos /= 12.0f;
     
     if (AspectRatio > 1.0f) {
-        adjustedPosition.x /= AspectRatio;
+        finalPos.x /= AspectRatio;
     } else if (AspectRatio < 1.0f) {
-        adjustedPosition.y *= AspectRatio;
+        finalPos.y *= AspectRatio;
     }
     
-    output.Position = float4(adjustedPosition, 0.0f, 1.0f);
+    output.Position = float4(finalPos, 0.0f, 1.0f);
     
-    output.TexCoord = input.TexCoord;
-    output.Brightness = input.Brightness;    
-    output.AddColor = input.AddColor;
+    // output.TexCoord = input.TexCoord;
+    // output.Brightness = input.Brightness;    
+    // output.AddColor = input.AddColor;
 
     return output;
 }

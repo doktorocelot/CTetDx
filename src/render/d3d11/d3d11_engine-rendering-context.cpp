@@ -148,10 +148,11 @@ void updateTextMesh(const TextRenderer *textRenderer, D3d11Mesh *mesh, ID3D11Dev
 
 void updateBlockBatchInMesh(BlockBatch *batch, D3d11Mesh *mesh, CTetEngine *engine, ID3D11DeviceContext *deviceContext) {
     blockBatch_stageAll(engine, batch);
+    mesh->instanceCount = batch->len;
 
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     auto r = deviceContext->Map(
-            mesh->vertexBuffer,
+            mesh->instanceBuffer,
             0,
             D3D11_MAP_WRITE_DISCARD,
             0,
@@ -159,9 +160,9 @@ void updateBlockBatchInMesh(BlockBatch *batch, D3d11Mesh *mesh, CTetEngine *engi
     );
     win32_checkResult(r, "MapResource (BlockBatch)");
 
-    memcpy(mappedResource.pData, batch, sizeof(BlockBatch));
+    memcpy(mappedResource.pData, batch->blockInstances, sizeof(BlockInstance) * mesh->instanceCount);
 
-    deviceContext->Unmap(mesh->vertexBuffer, 0);
+    deviceContext->Unmap(mesh->instanceBuffer, 0);
 }
 
 void d3d11EngineRenderingCtx_cleanup(D3d11EngineRenderingCtx *ctx) {

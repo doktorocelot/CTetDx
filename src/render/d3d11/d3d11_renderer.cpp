@@ -89,26 +89,33 @@ void d3d11Renderer_init(D3d11Renderer *renderer, HWND window, int width, int hei
 }
 
 void d3d11Renderer_drawFrame(D3d11Renderer *renderer, CTetEngine *engine, D3d11EngineRenderingCtx *context) {
+    // clear screen to black
     float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
     renderer->deviceContext->ClearRenderTargetView(renderer->renderTarget, clearColor);
 
+    // draw tetrion
     mesh_use(&context->frameMesh, renderer->deviceContext);
     mesh_draw(&context->frameMesh, renderer->deviceContext);
-
+    
+    // stage block verts
     updateBlockBatchInMesh(&context->blockBatch, &context->blockMesh, engine, renderer->deviceContext);
 
+    // draw blocks
     d3d11Texture_use(&context->blockSkinTexture, renderer->deviceContext);
     mesh_use(&context->blockMesh, renderer->deviceContext);
     mesh_draw(&context->blockMesh, renderer->deviceContext);
 
+    // upload text verts to gpu
     updateTextMesh(&context->textRenderer, &context->textMesh, renderer->deviceContext);
-    
+
+    // draw text
     d3d11Texture_use(&context->fontTexture, renderer->deviceContext);
     mesh_use(&context->textMesh, renderer->deviceContext);
     renderer->deviceContext->OMSetBlendState(context->textBlendState, nullptr, 0xFFFFFFFF);
     mesh_draw(&context->textMesh, renderer->deviceContext);
     renderer->deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
-    
+
+    // swap buffers
     const HRESULT r = renderer->swapChain->Present(0, 0);
     win32_checkResult(r, "SwapChain Present");
 }
