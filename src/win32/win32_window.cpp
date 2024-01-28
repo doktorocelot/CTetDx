@@ -166,15 +166,11 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     WasapiAudioSystem audioSystem = {};
     wasapiAudio_init(&audioSystem);
 
-    const int SQUARE_WAVE_FREQ = ceil(audioSystem.sampleRate / 1300.0 / 2);
-    int squareWaveAccum = 0;
-    int squareWaveIsHi = false;
-
     // TEST WAV FILE
-
 
     PcmS16Buffer lockSeData = win32_loadAudioIntoBuffer(L"resources\\se\\lock.wav");
     PcmS16Buffer hdSeData = win32_loadAudioIntoBuffer(L"resources\\se\\hard-drop.wav");
+    PcmS16Buffer shiftSeData = win32_loadAudioIntoBuffer(L"resources\\se\\shift.wav");
     Sound sounds[8] = {};
     
     constexpr float TIME_BETWEEN_AUDIO_UPDATES = 1.0f / 120;
@@ -260,6 +256,12 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
                     .pcmBuffer = &hdSeData
                 };
                 break;
+            case CT_MSG_SHIFT:
+                sounds[2] = {
+                .accumulator = 0,
+                .pcmBuffer = &shiftSeData
+            };
+                break;
             default:
                 break;
             }
@@ -284,7 +286,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
         // Audio
         timeSinceLastAudioUpdate += deltaTime;
         while (timeSinceLastAudioUpdate >= TIME_BETWEEN_AUDIO_UPDATES) {
-            int framesToWrite = round(timeSinceLastAudioUpdate * audioSystem.sampleRate);
+            int framesToWrite = round(TIME_BETWEEN_AUDIO_UPDATES * audioSystem.sampleRate);
             if (framesToWrite > audioSystem.sampleRate) framesToWrite = audioSystem.sampleRate;
             HRESULT result;
             unsigned char *audioDataBuffer;
@@ -293,7 +295,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
                 &audioDataBuffer);
             win32_checkResult(result, "Audio RenderClient -> GetBuffer");
             for (int i = 0; i < framesToWrite * 2; i += 2) {
-                constexpr int soundTypes = 2;
+                constexpr int soundTypes = 3;
                 const auto castedBuffer =
                     reinterpret_cast<short *>(audioDataBuffer);
                 castedBuffer[i] = 0;
