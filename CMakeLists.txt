@@ -52,6 +52,8 @@ set(SOURCES
         src/math/simple-math.hpp
         src/audio/wav.hpp
         src/audio/wav.cpp
+        src/audio/sound-pool.hpp
+        src/audio/sound-pool.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES} ${PLATFORM_SOURCES})

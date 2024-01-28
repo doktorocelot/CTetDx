@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <cmath>
 #include "win32_memory.hpp"
+#include "../audio/sound-pool.hpp"
 #include "../audio/wav.hpp"
 #include "../audio/wasapi/wasapi_audio_system.hpp"
 #include "../audio/win32/win32_audio.hpp"
@@ -129,10 +130,7 @@ static FpsCounter *initializeFpsCounter(size_t historyLength) {
     return counter;
 }
 
-struct Sound {
-    size_t accumulator;
-    PcmS16Buffer *pcmBuffer;
-};
+
 
 void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     MSG msg;
@@ -171,9 +169,10 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     PcmS16Buffer lockSeData = win32_loadAudioIntoBuffer(L"resources\\se\\lock.wav");
     PcmS16Buffer hdSeData = win32_loadAudioIntoBuffer(L"resources\\se\\hard-drop.wav");
     PcmS16Buffer shiftSeData = win32_loadAudioIntoBuffer(L"resources\\se\\shift.wav");
-    Sound sounds[8] = {};
-    
-    constexpr float TIME_BETWEEN_AUDIO_UPDATES = 1.0f / 120;
+    SoundPool soundPool = {};
+
+    constexpr int AUDIO_SAMPLES_PER_UPDATE = 1024;
+    const float TIME_BETWEEN_AUDIO_UPDATES = static_cast<float>(AUDIO_SAMPLES_PER_UPDATE) / audioSystem.sampleRate;
     float timeSinceLastAudioUpdate = 0;
 
     constexpr float TIME_BETWEEN_FPS_UPDATES = 0.5;
@@ -245,22 +244,13 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
                 gameIsPlaying = false;
                 break;
             case CT_MSG_LOCKDOWN:
-                sounds[0] = {
-                .accumulator = 0,
-                .pcmBuffer = &lockSeData
-            };
+                soundPool_add(&soundPool, &lockSeData);
                 break;
             case CT_MSG_HARD_DROP:
-                sounds[1] = {
-                    .accumulator = 0,
-                    .pcmBuffer = &hdSeData
-                };
+                soundPool_add(&soundPool, &hdSeData);
                 break;
             case CT_MSG_SHIFT:
-                sounds[2] = {
-                .accumulator = 0,
-                .pcmBuffer = &shiftSeData
-            };
+                soundPool_add(&soundPool, &shiftSeData);
                 break;
             default:
                 break;
@@ -286,7 +276,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
         // Audio
         timeSinceLastAudioUpdate += deltaTime;
         while (timeSinceLastAudioUpdate >= TIME_BETWEEN_AUDIO_UPDATES) {
-            int framesToWrite = round(TIME_BETWEEN_AUDIO_UPDATES * audioSystem.sampleRate);
+            int framesToWrite = AUDIO_SAMPLES_PER_UPDATE;
             if (framesToWrite > audioSystem.sampleRate) framesToWrite = audioSystem.sampleRate;
             HRESULT result;
             unsigned char *audioDataBuffer;
@@ -300,20 +290,17 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
                     reinterpret_cast<short *>(audioDataBuffer);
                 castedBuffer[i] = 0;
                 castedBuffer[i + 1] = 0;
-                for (int s = 0; s < soundTypes; s++) {
-                    if (sounds[s].pcmBuffer == nullptr) continue;
-                    if (sounds[s].accumulator >= sounds[s].pcmBuffer->len) continue;
-                    
-                    castedBuffer[i] = clampToShortRange(castedBuffer[i] + sounds[s].pcmBuffer->data[sounds[s].accumulator]);
-                    castedBuffer[i + 1] = clampToShortRange(castedBuffer[i + 1] + sounds[s].pcmBuffer->data[sounds[s].accumulator + 1]);
-                    sounds[s].accumulator += 2;
+                soundPool_startIter(&soundPool);
+                const short *sample;
+                while (sample = soundPool_next(&soundPool), sample != nullptr) {
+                    castedBuffer[i] = clampToShortRange(castedBuffer[i] + sample[0]);
+                    castedBuffer[i + 1] = clampToShortRange(castedBuffer[i + 1] + sample[1]);
                 }
 
             }
             
             result = audioSystem.renderClient->ReleaseBuffer(framesToWrite, 0);
             win32_checkResult(result, "Audio RenderClient -> ReleaseBuffer");
-            // timeSinceLastAudioUpdate = 0;
             timeSinceLastAudioUpdate -= TIME_BETWEEN_AUDIO_UPDATES;
         }
     }
