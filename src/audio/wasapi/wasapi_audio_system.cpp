@@ -27,12 +27,19 @@ void wasapiAudio_init(WasapiAudioSystem *system) {
                               reinterpret_cast<void **>(&system->audioClient));
     win32_checkResult(result, "Activate (Device -> AudioClient)");
 
+    WAVEFORMATEX *deviceFormat;
+    result = system->audioClient->GetMixFormat(&deviceFormat);
+    win32_checkResult(result, "Audio Client GetMIxFormat)");
+
+    system->sampleRate = deviceFormat->nSamplesPerSec;
+    CoTaskMemFree(deviceFormat);
+    
     // Audio format
     WAVEFORMATEX waveFormat = {};
 
     waveFormat.wFormatTag = WAVE_FORMAT_PCM;
     waveFormat.nChannels = 2;
-    waveFormat.nSamplesPerSec = SAMPLE_RATE;
+    waveFormat.nSamplesPerSec = system->sampleRate;
     waveFormat.wBitsPerSample = 16;
     waveFormat.nBlockAlign = waveFormat.nChannels * waveFormat.wBitsPerSample /
                              8;

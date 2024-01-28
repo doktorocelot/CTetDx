@@ -158,7 +158,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     WasapiAudioSystem audioSystem = {};
     wasapiAudio_init(&audioSystem);
 
-    const int SQUARE_WAVE_FREQ = ceil(44100.0 / 1300 / 2);
+    const int SQUARE_WAVE_FREQ = ceil(audioSystem.sampleRate / 1300.0 / 2);
     int squareWaveAccum = 0;
     int squareWaveIsHi = false;
     
@@ -257,8 +257,8 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
         // Audio
         timeSinceLastAudioUpdate += deltaTime;
         if (timeSinceLastAudioUpdate >= TIME_BETWEEN_AUDIO_UPDATES) {
-            int framesToWrite = timeSinceLastAudioUpdate * SAMPLE_RATE;
-            if (framesToWrite > SAMPLE_RATE) framesToWrite = SAMPLE_RATE;
+            int framesToWrite = timeSinceLastAudioUpdate * audioSystem.sampleRate;
+            if (framesToWrite > audioSystem.sampleRate) framesToWrite = audioSystem.sampleRate;
             HRESULT result;
             unsigned char *audioDataBuffer;
             result = audioSystem.renderClient->GetBuffer(framesToWrite, &audioDataBuffer);
