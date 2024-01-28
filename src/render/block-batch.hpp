@@ -7,22 +7,22 @@
 static constexpr int PIECE_BLOCK_COUNT = 4;
 static constexpr int BLOCK_VERTEX_COUNT = 4;
 
-struct BlockVertex {
+struct BlockInstance {
     Vector2 position;
     float brightness;
-    bool enabled;
-    Vector2 texCoords;
-    Vector3 addColor;
+    Vector2 texCoordOffset;
 };
 
-struct BlockGroup {
-    BlockVertex vertices[BLOCK_VERTEX_COUNT];
-};
+#define TOTAL_BLOCK_INSTANCES 1024
+
 
 struct BlockBatch {
-    BlockGroup field[CT_TOTAL_FIELD_HEIGHT][CT_FIELD_WIDTH];
-    BlockGroup nextPieces[CT_NEXT_QUEUE_MAX_LENGTH][PIECE_BLOCK_COUNT];
-    BlockGroup holdPiece[PIECE_BLOCK_COUNT];
+    BlockInstance blockInstances[TOTAL_BLOCK_INSTANCES];
+    size_t len;
+    // int fieldPtrs[CT_TOTAL_FIELD_HEIGHT][CT_FIELD_WIDTH];
+    // BlockGroup field[CT_TOTAL_FIELD_HEIGHT][CT_FIELD_WIDTH];
+    // BlockGroup nextPieces[CT_NEXT_QUEUE_MAX_LENGTH][PIECE_BLOCK_COUNT];
+    // BlockGroup holdPiece[PIECE_BLOCK_COUNT];
 };
 
 void blockBatch_stageAll(const CTetEngine *engine, BlockBatch *batch);
