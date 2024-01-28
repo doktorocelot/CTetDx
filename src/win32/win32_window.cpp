@@ -7,8 +7,10 @@
 
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 
 #include "win32_memory.hpp"
+#include "../audio/wasapi/wasapi_audio_system.hpp"
 
 #define WINDOW_TITLE L"CTetDx"
 #define WINDOW_WIDTH  720
@@ -152,11 +154,22 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     D3d11EngineRenderingCtx ctx {};
     d3d11EngineRenderingCtx_init(&ctx, window->d3d11Renderer.device, window->d3d11Renderer.aspectRatioBuffer);
 
+    // Audio
+    WasapiAudioSystem audioSystem = {};
+    wasapiAudio_init(&audioSystem);
+
+    const int SQUARE_WAVE_FREQ = ceil(44100.0 / 1300 / 2);
+    int squareWaveAccum = 0;
+    int squareWaveIsHi = false;
+    
+    constexpr float TIME_BETWEEN_AUDIO_UPDATES = 0.25;
+    float timeSinceLastAudioUpdate = TIME_BETWEEN_AUDIO_UPDATES;
+
     constexpr float TIME_BETWEEN_FPS_UPDATES = 0.5;
     float timeSinceLastFpsUpdate = TIME_BETWEEN_FPS_UPDATES;
 
     constexpr float TIME_BETWEEN_RENDERS = 1.0f / 240;
-    float timeSinceLastRender = 0;
+    float timeSinceLastRender = TIME_BETWEEN_RENDERS;
     
     while (true) {
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -239,6 +252,33 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
             textRenderer_stageText(&ctx.textRenderer, ctx.ingameText.texts, INGAME_TEXT_LEN);
 
             d3d11Renderer_drawFrame(&window->d3d11Renderer, engine, &ctx);
+        }
+
+        // Audio
+        timeSinceLastAudioUpdate += deltaTime;
+        if (timeSinceLastAudioUpdate >= TIME_BETWEEN_AUDIO_UPDATES) {
+            int framesToWrite = timeSinceLastAudioUpdate * SAMPLE_RATE;
+            if (framesToWrite > SAMPLE_RATE) framesToWrite = SAMPLE_RATE;
+            HRESULT result;
+            unsigned char *audioDataBuffer;
+            result = audioSystem.renderClient->GetBuffer(framesToWrite, &audioDataBuffer);
+            win32_checkResult(result, "Audio RenderClient -> GetBuffer");
+
+            for (int i = 0; i < framesToWrite * 2; i+=2) {
+                const auto castedBuffer = reinterpret_cast<short *>(audioDataBuffer);
+                if (squareWaveAccum >= SQUARE_WAVE_FREQ) {
+                    squareWaveIsHi = !squareWaveIsHi;
+                    squareWaveAccum = 0;
+                }
+                const short val = squareWaveIsHi ? 327 : -327;
+                castedBuffer[i] = val;
+                castedBuffer[i+1] = val;
+                squareWaveAccum++;
+            }
+            
+            result = audioSystem.renderClient->ReleaseBuffer(framesToWrite, 0);
+            win32_checkResult(result, "Audio RenderClient -> ReleaseBuffer");
+            timeSinceLastAudioUpdate -= TIME_BETWEEN_AUDIO_UPDATES;
         }
     }
 }

@@ -14,6 +14,8 @@ set(WIN32_SOURCES
         src/win32/win32_kill-program.hpp src/win32/win32_kill-program.cpp
         src/win32/win32_files.hpp src/win32/win32_files.cpp
         src/win32/win32_memory.hpp src/win32/win32_memory.cpp
+        src/audio/wasapi/wasapi_audio_system.hpp
+        src/audio/wasapi/wasapi_audio_system.cpp
 )
 
 # Sources to interact with directx11
@@ -54,6 +56,7 @@ add_subdirectory(extern/ctet)
 target_link_libraries(CTetDx PUBLIC CTet)
 target_link_libraries(CTetDx PUBLIC Shlwapi.lib)
 target_link_libraries(CTetDx PUBLIC d3d11.lib dxguid.lib d3dcompiler.lib)
+target_link_libraries(CTetDx PUBLIC ole32.lib windowscodecs.lib Mmdevapi.lib)
 
 add_compile_options(-DUNICODE -D_UNICODE)
 
