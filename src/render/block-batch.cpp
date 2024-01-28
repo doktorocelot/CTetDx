@@ -1,6 +1,6 @@
 #include "block-batch.hpp"
 
-#include "../math/two-numbers.hpp"
+#include "../math/simple-math.hpp"
 #include "../math/vector2-cross-ctet.hpp"
 
 static void addBlock(BlockBatch *batch, const BlockInstance instance) {

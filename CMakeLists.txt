@@ -16,6 +16,8 @@ set(WIN32_SOURCES
         src/win32/win32_memory.hpp src/win32/win32_memory.cpp
         src/audio/wasapi/wasapi_audio_system.hpp
         src/audio/wasapi/wasapi_audio_system.cpp
+        src/audio/win32/win32_audio.hpp
+        src/audio/win32/win32_audio.cpp
 )
 
 # Sources to interact with directx11
@@ -47,7 +49,9 @@ set(SOURCES
         src/render/text.cpp
         src/render/ingame-text.hpp
         src/render/ingame-text.cpp
-        src/math/two-numbers.hpp
+        src/math/simple-math.hpp
+        src/audio/wav.hpp
+        src/audio/wav.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES} ${PLATFORM_SOURCES})

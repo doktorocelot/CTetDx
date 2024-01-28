@@ -1,16 +1,19 @@
 #include <cstdlib>
 #include <sstream>
+#include "../math/simple-math.hpp"
 #include "win32_window.hpp"
 #include "win32_check-result.hpp"
+#include "win32_files.hpp"
 #include "win32_kill-program.hpp"
 #include "../util/fps-counter.hpp"
 
 #include <iostream>
 #include <iomanip>
 #include <cmath>
-
 #include "win32_memory.hpp"
+#include "../audio/wav.hpp"
 #include "../audio/wasapi/wasapi_audio_system.hpp"
+#include "../audio/win32/win32_audio.hpp"
 
 #define WINDOW_TITLE L"CTetDx"
 #define WINDOW_WIDTH  720
@@ -126,6 +129,11 @@ static FpsCounter *initializeFpsCounter(size_t historyLength) {
     return counter;
 }
 
+struct Sound {
+    size_t accumulator;
+    PcmS16Buffer *pcmBuffer;
+};
+
 void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     MSG msg;
     LARGE_INTEGER frequency, lastTime, currentTime;
@@ -161,9 +169,16 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     const int SQUARE_WAVE_FREQ = ceil(audioSystem.sampleRate / 1300.0 / 2);
     int squareWaveAccum = 0;
     int squareWaveIsHi = false;
+
+    // TEST WAV FILE
+
+
+    PcmS16Buffer lockSeData = win32_loadAudioIntoBuffer(L"resources\\se\\lock.wav");
+    PcmS16Buffer hdSeData = win32_loadAudioIntoBuffer(L"resources\\se\\hard-drop.wav");
+    Sound sounds[8] = {};
     
-    constexpr float TIME_BETWEEN_AUDIO_UPDATES = 0.25;
-    float timeSinceLastAudioUpdate = TIME_BETWEEN_AUDIO_UPDATES;
+    constexpr float TIME_BETWEEN_AUDIO_UPDATES = 1.0f / 120;
+    float timeSinceLastAudioUpdate = 0;
 
     constexpr float TIME_BETWEEN_FPS_UPDATES = 0.5;
     float timeSinceLastFpsUpdate = TIME_BETWEEN_FPS_UPDATES;
@@ -230,11 +245,23 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
 
         while (ctMsg = ctEngine_nextMessage(engine), ctMsg.id != CT_MSG_NONE) {
             switch (ctMsg.id) {
-                case CT_MSG_GAME_OVER:
-                    gameIsPlaying = false;
-                    break;
-                default:
-                    break;
+            case CT_MSG_GAME_OVER:
+                gameIsPlaying = false;
+                break;
+            case CT_MSG_LOCKDOWN:
+                sounds[0] = {
+                .accumulator = 0,
+                .pcmBuffer = &lockSeData
+            };
+                break;
+            case CT_MSG_HARD_DROP:
+                sounds[1] = {
+                    .accumulator = 0,
+                    .pcmBuffer = &hdSeData
+                };
+                break;
+            default:
+                break;
             }
         }
 
@@ -256,28 +283,35 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
 
         // Audio
         timeSinceLastAudioUpdate += deltaTime;
-        if (timeSinceLastAudioUpdate >= TIME_BETWEEN_AUDIO_UPDATES) {
-            int framesToWrite = timeSinceLastAudioUpdate * audioSystem.sampleRate;
+        while (timeSinceLastAudioUpdate >= TIME_BETWEEN_AUDIO_UPDATES) {
+            int framesToWrite = round(timeSinceLastAudioUpdate * audioSystem.sampleRate);
             if (framesToWrite > audioSystem.sampleRate) framesToWrite = audioSystem.sampleRate;
             HRESULT result;
             unsigned char *audioDataBuffer;
-            result = audioSystem.renderClient->GetBuffer(framesToWrite, &audioDataBuffer);
+            result = audioSystem.renderClient->GetBuffer(
+                framesToWrite,
+                &audioDataBuffer);
             win32_checkResult(result, "Audio RenderClient -> GetBuffer");
-
-            for (int i = 0; i < framesToWrite * 2; i+=2) {
-                const auto castedBuffer = reinterpret_cast<short *>(audioDataBuffer);
-                if (squareWaveAccum >= SQUARE_WAVE_FREQ) {
-                    squareWaveIsHi = !squareWaveIsHi;
-                    squareWaveAccum = 0;
+            for (int i = 0; i < framesToWrite * 2; i += 2) {
+                constexpr int soundTypes = 2;
+                const auto castedBuffer =
+                    reinterpret_cast<short *>(audioDataBuffer);
+                castedBuffer[i] = 0;
+                castedBuffer[i + 1] = 0;
+                for (int s = 0; s < soundTypes; s++) {
+                    if (sounds[s].pcmBuffer == nullptr) continue;
+                    if (sounds[s].accumulator >= sounds[s].pcmBuffer->len) continue;
+                    
+                    castedBuffer[i] = clampToShortRange(castedBuffer[i] + sounds[s].pcmBuffer->data[sounds[s].accumulator]);
+                    castedBuffer[i + 1] = clampToShortRange(castedBuffer[i + 1] + sounds[s].pcmBuffer->data[sounds[s].accumulator + 1]);
+                    sounds[s].accumulator += 2;
                 }
-                const short val = squareWaveIsHi ? 327 : -327;
-                castedBuffer[i] = val;
-                castedBuffer[i+1] = val;
-                squareWaveAccum++;
+
             }
             
             result = audioSystem.renderClient->ReleaseBuffer(framesToWrite, 0);
             win32_checkResult(result, "Audio RenderClient -> ReleaseBuffer");
+            // timeSinceLastAudioUpdate = 0;
             timeSinceLastAudioUpdate -= TIME_BETWEEN_AUDIO_UPDATES;
         }
     }
