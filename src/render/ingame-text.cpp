@@ -88,7 +88,7 @@ void ingameText_update(IngameText *ingameText, const CTetStats *stats) {
     //     commaAccum++;
     // }
     
-    snprintf(ingameText->scoreValueText, SCORE_VALUE_TEXT_BYTES, "%d", stats->score);
+    snprintf(ingameText->scoreValueText, SCORE_VALUE_TEXT_BYTES, "%lld", stats->score);
     snprintf(ingameText->levelValueText, REGULAR_VALUE_TEXT_BYTES, "%d", stats->level);
     snprintf(ingameText->linesValueText, REGULAR_VALUE_TEXT_BYTES, "%d", stats->lines);
     snprintf(ingameText->piecesValueText, REGULAR_VALUE_TEXT_BYTES, "%d", stats->pieces);

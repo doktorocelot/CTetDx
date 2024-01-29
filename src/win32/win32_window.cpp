@@ -164,8 +164,6 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     // Audio
     WasapiAudioSystem audioSystem = {};
     wasapiAudio_init(&audioSystem);
-
-    // TEST WAV FILE
     
     PcmS16Buffer sounds[Sounds_LENGTH];
     loadSounds(sounds);
@@ -269,6 +267,15 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
                 soundPool_add(&soundPool, &sounds[SOUNDS[ctMsg.detailA]]);
                 break;
             }
+            case CT_MSG_COLLAPSE:
+                soundPool_add(&soundPool, &sounds[Sounds_COLLAPSE]);
+                break;
+            case CT_MSG_BUFFERED_ROTATE:
+                soundPool_add(&soundPool, &sounds[Sounds_BUFFER_ROTATE]);
+                break;
+            case CT_MSG_BUFFERED_HOLD:
+                soundPool_add(&soundPool, &sounds[Sounds_BUFFER_HOLD]);
+                break;
             default:
                 break;
             }

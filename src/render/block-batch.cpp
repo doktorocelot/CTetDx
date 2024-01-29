@@ -24,6 +24,7 @@ constexpr Vector2 TEXCOORD_LOCKED_HOLD_BONE_OFFSET = {1, -3};
 constexpr Vector2 TEXCOORD_GHOST_OFFSET = {1, -2};
 static void stageActive(const CTetEngine *engine, BlockBatch *batch) {
     const auto active = ctEngine_getActivePiece(engine);
+    if (active->type == CTetPieceType_NONE) return;
     const auto activePos = vector2_addToNew(
         vector2_fromCtPoint(ctEngine_getActivePiecePos(engine)),
         {-(CT_FIELD_WIDTH / 2), -(CT_VISIBLE_FIELD_HEIGHT / 2)}

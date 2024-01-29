@@ -11,6 +11,9 @@ enum Sounds {
     Sounds_ERASE2,
     Sounds_ERASE3,
     Sounds_ERASE4,
+    Sounds_COLLAPSE,
+    Sounds_BUFFER_ROTATE,
+    Sounds_BUFFER_HOLD,
     Sounds_LENGTH,
 };
 

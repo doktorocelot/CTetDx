@@ -14,6 +14,9 @@ static const wchar_t *FILE_NAMES[] = {
     L"erase2",
     L"erase3",
     L"erase4",
+    L"collapse",
+    L"buffer-rotate",
+    L"buffer-hold",
 };
 
 void loadSounds(PcmS16Buffer soundBuffers[Sounds_LENGTH]) {
