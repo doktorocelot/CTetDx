@@ -37,10 +37,10 @@ void wasapiAudio_init(WasapiAudioSystem *system) {
     // Audio format
     WAVEFORMATEX waveFormat = {};
 
-    waveFormat.wFormatTag = WAVE_FORMAT_PCM;
+    waveFormat.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
     waveFormat.nChannels = 2;
     waveFormat.nSamplesPerSec = system->sampleRate;
-    waveFormat.wBitsPerSample = 16;
+    waveFormat.wBitsPerSample = 32;
     waveFormat.nBlockAlign = waveFormat.nChannels * waveFormat.wBitsPerSample /
                              8;
     waveFormat.nAvgBytesPerSec =

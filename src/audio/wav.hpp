@@ -1,10 +1,11 @@
 #pragma once
 
-struct PcmS16Buffer {
-    short *data;
+
+struct PcmF32Buffer {
+    float *data;
     size_t len;
 };
 
-PcmS16Buffer wav_init(unsigned char *wavFileData, unsigned char *destBuffer, size_t destBufferSize);
+PcmF32Buffer wav_init_f32(unsigned char *wavFileData, unsigned char *destBuffer, size_t destBufferSize);
 
-size_t wav_getAudioSize(unsigned char *wavFileData);
+size_t wav_getAudioSize_f32(unsigned char *wavFileData);

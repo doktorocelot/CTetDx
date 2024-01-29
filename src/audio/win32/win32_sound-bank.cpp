@@ -1,6 +1,6 @@
-#include "sound-bank.hpp"
+#include "win32_sound-bank.hpp"
 
-#include "win32/win32_audio.hpp"
+#include "win32_audio.hpp"
 
 #include <string>
 
@@ -19,7 +19,7 @@ static const wchar_t *FILE_NAMES[] = {
     L"buffer-hold",
 };
 
-void loadSounds(PcmS16Buffer soundBuffers[Sounds_LENGTH]) {
+void win32_loadSounds(PcmF32Buffer soundBuffers[Sounds_LENGTH]) {
     for (int i = 0; i < Sounds_LENGTH; i++) {
         std::wstring path{};
         path += L"resources\\se\\";

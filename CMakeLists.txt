@@ -18,6 +18,8 @@ set(WIN32_SOURCES
         src/audio/wasapi/wasapi_audio_system.cpp
         src/audio/win32/win32_audio.hpp
         src/audio/win32/win32_audio.cpp
+        src/audio/win32/win32_sound-bank.hpp
+        src/audio/win32/win32_sound-bank.cpp
 )
 
 # Sources to interact with directx11
@@ -54,8 +56,6 @@ set(SOURCES
         src/audio/wav.cpp
         src/audio/sound-pool.hpp
         src/audio/sound-pool.cpp
-        src/audio/sound-bank.hpp
-        src/audio/sound-bank.cpp
 )
 
 add_executable(CTetDx WIN32 ${SOURCES} ${PLATFORM_SOURCES})

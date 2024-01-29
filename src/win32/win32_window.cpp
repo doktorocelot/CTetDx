@@ -11,7 +11,7 @@
 #include <iomanip>
 #include <cmath>
 #include "win32_memory.hpp"
-#include "../audio/sound-bank.hpp"
+#include "../audio/win32/win32_sound-bank.hpp"
 #include "../audio/sound-pool.hpp"
 #include "../audio/wav.hpp"
 #include "../audio/wasapi/wasapi_audio_system.hpp"
@@ -165,8 +165,8 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     WasapiAudioSystem audioSystem = {};
     wasapiAudio_init(&audioSystem);
     
-    PcmS16Buffer sounds[Sounds_LENGTH];
-    loadSounds(sounds);
+    PcmF32Buffer sounds[Sounds_LENGTH];
+    win32_loadSounds(sounds);
     SoundPool soundPool = {};
 
     constexpr int AUDIO_SAMPLES_PER_UPDATE = 1024;
@@ -315,20 +315,20 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
             if (framesToWrite > audioSystem.sampleRate) framesToWrite = audioSystem.sampleRate;
             HRESULT result;
             unsigned char *audioDataBuffer;
-            const short *sample;
+            const float *sample;
             result = audioSystem.renderClient->GetBuffer(
                 framesToWrite,
                 &audioDataBuffer);
             win32_checkResult(result, "Audio RenderClient -> GetBuffer");
             for (int i = 0; i < framesToWrite * 2; i += 2) {
                 const auto castedBuffer =
-                    reinterpret_cast<short *>(audioDataBuffer);
-                castedBuffer[i] = 0;
-                castedBuffer[i + 1] = 0;
+                    reinterpret_cast<float *>(audioDataBuffer);
+                castedBuffer[i] = 0.0;
+                castedBuffer[i + 1] = 0.0;
                 soundPool_startIter(&soundPool);
                 while (sample = soundPool_next(&soundPool), sample != nullptr) {
-                    castedBuffer[i] = clampToShortRange(castedBuffer[i] + sample[0]);
-                    castedBuffer[i + 1] = clampToShortRange(castedBuffer[i + 1] + sample[1]);
+                    castedBuffer[i] += sample[0];
+                    castedBuffer[i + 1] += sample[1];
                 }
 
             }

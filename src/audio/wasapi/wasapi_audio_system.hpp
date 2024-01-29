@@ -2,7 +2,7 @@
 #include <audioclient.h>
 #include <mmdeviceapi.h>
 #define NUM_AUDIO_CHANNELS 2
-constexpr int FRAME_SIZE_BYTES = sizeof(short) * NUM_AUDIO_CHANNELS;
+constexpr int FRAME_SIZE_BYTES = sizeof(float) * NUM_AUDIO_CHANNELS;
 struct WasapiAudioSystem {
     IMMDeviceEnumerator *enumerator;
     IMMDevice *device;

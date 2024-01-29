@@ -1,5 +1,5 @@
 #pragma once
-#include "wav.hpp"
+#include "../wav.hpp"
 
 enum Sounds {
     Sounds_HARD_DROP,
@@ -17,4 +17,4 @@ enum Sounds {
     Sounds_LENGTH,
 };
 
-void loadSounds(PcmS16Buffer soundBuffers[Sounds_LENGTH]);
+void win32_loadSounds(PcmF32Buffer soundBuffers[Sounds_LENGTH]);
