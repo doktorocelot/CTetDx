@@ -75,11 +75,18 @@ void wasapiAudio_init(WasapiAudioSystem *system) {
 
     unsigned char *data;
 
+    result = system->audioClient->GetService(__uuidof(IAudioClock),
+        reinterpret_cast<void **>(&system->audioClock));
+    win32_checkResult(result, "AudioClient GetService (AudioClock)");
+    
+
     // // Preload audio data to keep a gap between playing and the buffer
-    // const unsigned int preloadFrames = system->sampleRate / 500;
-    // result = system->renderClient->GetBuffer(preloadFrames, &data);
-    // win32_checkResult(result, "Audio RenderClient -> GetBuffer");
-    //         
-    // result = system->renderClient->ReleaseBuffer(preloadFrames, 0);
-    // win32_checkResult(result, "Audio RenderClient -> ReleaseBuffer");
+    const unsigned int preloadFrames = system->sampleRate / 50;
+    result = system->renderClient->GetBuffer(preloadFrames, &data);
+    win32_checkResult(result, "Audio RenderClient -> GetBuffer");
+
+    system->pushedFrames += preloadFrames;
+    
+    result = system->renderClient->ReleaseBuffer(preloadFrames, 0);
+    win32_checkResult(result, "Audio RenderClient -> ReleaseBuffer");
 }

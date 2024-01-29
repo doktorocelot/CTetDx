@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <cmath>
 #include "win32_memory.hpp"
+#include "../audio/sound-bank.hpp"
 #include "../audio/sound-pool.hpp"
 #include "../audio/wav.hpp"
 #include "../audio/wasapi/wasapi_audio_system.hpp"
@@ -135,7 +136,7 @@ static FpsCounter *initializeFpsCounter(size_t historyLength) {
 void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     MSG msg;
     LARGE_INTEGER frequency, lastTime, currentTime;
-    float deltaTime;
+    double deltaTime;
     CTetMessage ctMsg;
     bool gameIsPlaying = true;
 
@@ -165,10 +166,9 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
     wasapiAudio_init(&audioSystem);
 
     // TEST WAV FILE
-
-    PcmS16Buffer lockSeData = win32_loadAudioIntoBuffer(L"resources\\se\\lock.wav");
-    PcmS16Buffer hdSeData = win32_loadAudioIntoBuffer(L"resources\\se\\hard-drop.wav");
-    PcmS16Buffer shiftSeData = win32_loadAudioIntoBuffer(L"resources\\se\\shift.wav");
+    
+    PcmS16Buffer sounds[Sounds_LENGTH];
+    loadSounds(sounds);
     SoundPool soundPool = {};
 
     constexpr int AUDIO_SAMPLES_PER_UPDATE = 1024;
@@ -194,7 +194,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
 
         QueryPerformanceCounter(&currentTime);
 
-        deltaTime = (float)(currentTime.QuadPart - lastTime.QuadPart) / (float)frequency.QuadPart;
+        deltaTime = (double)(currentTime.QuadPart - lastTime.QuadPart) / (double)frequency.QuadPart;
 
         fpsCounter_pushFrameTime(fpsCounterUpdate, deltaTime);
 
@@ -244,14 +244,31 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
                 gameIsPlaying = false;
                 break;
             case CT_MSG_LOCKDOWN:
-                soundPool_add(&soundPool, &lockSeData);
+                soundPool_add(&soundPool, &sounds[Sounds_LOCK]);
                 break;
             case CT_MSG_HARD_DROP:
-                soundPool_add(&soundPool, &hdSeData);
+                soundPool_add(&soundPool, &sounds[Sounds_HARD_DROP]);
                 break;
             case CT_MSG_SHIFT:
-                soundPool_add(&soundPool, &shiftSeData);
+                soundPool_add(&soundPool, &sounds[Sounds_SHIFT]);
                 break;
+            case CT_MSG_ROTATE:
+                soundPool_add(&soundPool, &sounds[Sounds_ROTATE]);
+                break;
+            case CT_MSG_HOLD:
+                soundPool_add(&soundPool, &sounds[Sounds_HOLD]);
+                break;
+            case CT_MSG_CLEAR_LINE: {
+                constexpr Sounds SOUNDS[] = {
+                    Sounds_ERASE1, // should not be here
+                    Sounds_ERASE1,
+                    Sounds_ERASE2,
+                    Sounds_ERASE3,
+                    Sounds_ERASE4
+                };
+                soundPool_add(&soundPool, &sounds[SOUNDS[ctMsg.detailA]]);
+                break;
+            }
             default:
                 break;
             }
@@ -273,25 +290,35 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
             d3d11Renderer_drawFrame(&window->d3d11Renderer, engine, &ctx);
         }
 
+
+        
         // Audio
         timeSinceLastAudioUpdate += deltaTime;
         while (timeSinceLastAudioUpdate >= TIME_BETWEEN_AUDIO_UPDATES) {
-            int framesToWrite = AUDIO_SAMPLES_PER_UPDATE;
+            unsigned long long position;
+
+            // correction to ensure that we stay on pace with the audio device's reading speed
+            audioSystem.audioClock->GetPosition(&position, nullptr);
+            long long offsetFromClock = audioSystem.pushedFrames * FRAME_SIZE_BYTES - position;
+            long long correction = 1024 - (offsetFromClock / FRAME_SIZE_BYTES);
+
+            timeSinceLastAudioUpdate -= TIME_BETWEEN_AUDIO_UPDATES;
+            int framesToWrite = AUDIO_SAMPLES_PER_UPDATE + correction;
+            audioSystem.pushedFrames += framesToWrite;
             if (framesToWrite > audioSystem.sampleRate) framesToWrite = audioSystem.sampleRate;
             HRESULT result;
             unsigned char *audioDataBuffer;
+            const short *sample;
             result = audioSystem.renderClient->GetBuffer(
                 framesToWrite,
                 &audioDataBuffer);
             win32_checkResult(result, "Audio RenderClient -> GetBuffer");
             for (int i = 0; i < framesToWrite * 2; i += 2) {
-                constexpr int soundTypes = 3;
                 const auto castedBuffer =
                     reinterpret_cast<short *>(audioDataBuffer);
                 castedBuffer[i] = 0;
                 castedBuffer[i + 1] = 0;
                 soundPool_startIter(&soundPool);
-                const short *sample;
                 while (sample = soundPool_next(&soundPool), sample != nullptr) {
                     castedBuffer[i] = clampToShortRange(castedBuffer[i] + sample[0]);
                     castedBuffer[i + 1] = clampToShortRange(castedBuffer[i + 1] + sample[1]);
@@ -301,7 +328,7 @@ void win32Window_loop(Win32Window *window, CTetEngine *engine) {
             
             result = audioSystem.renderClient->ReleaseBuffer(framesToWrite, 0);
             win32_checkResult(result, "Audio RenderClient -> ReleaseBuffer");
-            timeSinceLastAudioUpdate -= TIME_BETWEEN_AUDIO_UPDATES;
+            
         }
     }
 }
