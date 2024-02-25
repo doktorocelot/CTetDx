@@ -90,3 +90,38 @@ void wasapiAudio_init(WasapiAudioSystem *system) {
     result = system->renderClient->ReleaseBuffer(preloadFrames, 0);
     win32_checkResult(result, "Audio RenderClient -> ReleaseBuffer");
 }
+
+void wasapiAudio_process(WasapiAudioSystem *audioSystem, SoundPool *soundPool) {
+    unsigned long long position;
+
+    // correction to ensure that we stay on pace with the audio device's reading speed
+    audioSystem->audioClock->GetPosition(&position, nullptr);
+    long long offsetFromClock = audioSystem->pushedFrames * FRAME_SIZE_BYTES - position;
+    long long correction = 1024 - (offsetFromClock / FRAME_SIZE_BYTES);
+
+    int framesToWrite = AUDIO_SAMPLES_PER_UPDATE + correction;
+    audioSystem->pushedFrames += framesToWrite;
+    if (framesToWrite > audioSystem->sampleRate) framesToWrite = audioSystem->sampleRate;
+    HRESULT result;
+    unsigned char *audioDataBuffer;
+    const float *sample;
+    result = audioSystem->renderClient->GetBuffer(
+        framesToWrite,
+        &audioDataBuffer);
+    win32_checkResult(result, "Audio RenderClient -> GetBuffer");
+    for (int i = 0; i < framesToWrite * 2; i += 2) {
+        const auto castedBuffer =
+            reinterpret_cast<float *>(audioDataBuffer);
+        castedBuffer[i] = 0.0;
+        castedBuffer[i + 1] = 0.0;
+        soundPool_startIter(soundPool);
+        while (sample = soundPool_next(soundPool), sample != nullptr) {
+            castedBuffer[i] += sample[0];
+            castedBuffer[i + 1] += sample[1];
+        }
+
+    }
+            
+    result = audioSystem->renderClient->ReleaseBuffer(framesToWrite, 0);
+    win32_checkResult(result, "Audio RenderClient -> ReleaseBuffer");
+}
