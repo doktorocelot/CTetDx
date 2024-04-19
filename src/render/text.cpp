@@ -1,32 +1,36 @@
 #include "text.hpp"
 
-static void text_initGlyphsFromBin(Glyph *glyphs, unsigned char *data, const size_t dataLength, const float resolution) {
+static void text_initGlyphsFromBin(Glyph *glyphs, unsigned char *data, const size_t glyphCount) {
     // assumes glyphs arg has enough space for ascii charset
     constexpr int LINE_LEN = 40;
-    const int totalLines = dataLength / LINE_LEN;
-    for (int i = 0; i < totalLines; i++) {
+    for (int i = 0; i < glyphCount; i++) {
         const int index = *reinterpret_cast<int *>(data);
         glyphs[index].advance = *reinterpret_cast<float *>(data + sizeof(int));
         glyphs[index].triBounds.left = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float));
         glyphs[index].triBounds.bottom = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float) * 2);
         glyphs[index].triBounds.right = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float) * 3);
         glyphs[index].triBounds.top = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float) * 4);
-        glyphs[index].pixelOffset.left = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float) * 5) / resolution;
-        glyphs[index].pixelOffset.bottom = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float) * 6) / resolution;
-        glyphs[index].pixelOffset.right = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float) * 7) / resolution;
-        glyphs[index].pixelOffset.top = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float) * 8) / resolution;
+        glyphs[index].pixelOffset.left = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float) * 5);
+        glyphs[index].pixelOffset.bottom = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float) * 6);
+        glyphs[index].pixelOffset.right = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float) * 7);
+        glyphs[index].pixelOffset.top = *reinterpret_cast<float *>(data + sizeof(int) + sizeof(float) * 8);
         data += LINE_LEN;
     }
 }
-
+static constexpr size_t CTF_HEADER_SIZE = 4;
+static constexpr size_t CTF_RESOLUTION_OFFSET = CTF_HEADER_SIZE + sizeof(unsigned int);
+static constexpr size_t CTF_DISTANCE_RANGE_OFFSET = CTF_HEADER_SIZE + sizeof(unsigned int) * 2;
+static constexpr size_t CTF_DATA_OFFSET = CTF_HEADER_SIZE + sizeof(unsigned int) * 3;
 void textRenderer_init(
     TextRenderer *textRenderer,
-    unsigned char *rawGlyphData,
-    const size_t dataLen,
-    const float imgResolution
-    ) {
+    unsigned char *rawGlyphData
+) {
     *textRenderer = {};
-    text_initGlyphsFromBin(textRenderer->glyphs, rawGlyphData, dataLen, imgResolution);
+    
+    size_t glyphCount = *reinterpret_cast<unsigned int *>(rawGlyphData + CTF_HEADER_SIZE);
+    textRenderer->resolution = *reinterpret_cast<unsigned int *>(rawGlyphData + CTF_RESOLUTION_OFFSET);
+    textRenderer->distanceRange = *reinterpret_cast<unsigned int *>(rawGlyphData + CTF_DISTANCE_RANGE_OFFSET);
+    text_initGlyphsFromBin(textRenderer->glyphs, rawGlyphData + CTF_DATA_OFFSET, glyphCount);
 }
 
 void textRenderer_clearText(TextRenderer *textRenderer) {

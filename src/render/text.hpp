@@ -20,6 +20,8 @@ struct CharVertex {
 
 struct TextRenderer {
     Glyph glyphs[GLYPH_LUT_LENGTH];
+    unsigned int resolution;
+    unsigned int distanceRange;
     CharVertex chars[MAX_CHAR_QUADS][CHAR_QUAD_VERT_COUNT];
     size_t activeCharCount;
 };
@@ -39,10 +41,8 @@ struct Text {
 
 void textRenderer_init(
     TextRenderer *textRenderer,
-    unsigned char *rawGlyphData,
-    size_t dataLen,
-    float imgResolution
-    );
+    unsigned char *rawGlyphData
+);
 
 void textRenderer_stageText(TextRenderer *textRenderer, const Text *texts,
                             size_t count);

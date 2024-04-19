@@ -91,20 +91,18 @@ void d3d11EngineRenderingCtx_init(D3d11EngineRenderingCtx *ctx, ID3D11Device *de
     // font data
     wchar_t fontFilePath[MAX_PATH];
 
-    win32_setCompleteFilePath(fontFilePath, MAX_PATH, L"resources\\font\\font.bin");
+    win32_setCompleteFilePath(fontFilePath, MAX_PATH, L"resources\\font\\font.ctf");
 
     unsigned char *fontData = nullptr;
-    uint32_t fontDataSize;
     if (win32_fileExists(fontFilePath)) {
         const HANDLE fontDataHandle = win32_openFile(fontFilePath);
-        fontDataSize = win32_getFileSize(fontDataHandle);
         fontData = win32_loadFileIntoNewVirtualBuffer(fontDataHandle);
         win32_closeFile(fontDataHandle);
     } else {
         win32_killProgram(L"Could not load font data from resources\\font\\font.bin");
         return;
     }    
-    textRenderer_init(&ctx->textRenderer, fontData, fontDataSize, fontTexHeight);
+    textRenderer_init(&ctx->textRenderer, fontData);
     win32_deallocateMemory(fontData);
     
     // font mesh
