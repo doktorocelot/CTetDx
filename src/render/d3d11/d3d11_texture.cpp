@@ -8,7 +8,7 @@
 
 #include <string>
 
-ID3D11Texture2D *d3d11_loadStaticTextureFromBmp(ID3D11Device *device, const wchar_t *path, int *outHeight) {
+ID3D11Texture2D *d3d11_loadStaticTextureFromBmp(ID3D11Device *device, const wchar_t *path) {
     wchar_t filePath[MAX_PATH];
 
     win32_setCompleteFilePath(filePath, MAX_PATH, path);
@@ -55,8 +55,6 @@ ID3D11Texture2D *d3d11_loadStaticTextureFromBmp(ID3D11Device *device, const wcha
 
     win32_deallocateMemory(skinImage.imageData);
 
-    if (outHeight != nullptr) *outHeight = skinImage.height;
-    
     return texture;
 }
 

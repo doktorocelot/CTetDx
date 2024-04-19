@@ -76,14 +76,13 @@ void d3d11EngineRenderingCtx_init(D3d11EngineRenderingCtx *ctx, ID3D11Device *de
     createFrameMesh(&ctx->frameMesh, device, aspectRatioBuffer);
 
     // block skin
-    const auto blockSkinTex = d3d11_loadStaticTextureFromBmp(device, L"resources\\img\\skin.bmp", nullptr);
+    const auto blockSkinTex = d3d11_loadStaticTextureFromBmp(device, L"resources\\img\\skin.bmp");
     ctx->blockSkinTexture.texture = blockSkinTex;
     ctx->blockSkinTexture.srv = d3d11_createSrvFromTexture(device, blockSkinTex);
     ctx->blockSkinTexture.sampler = d3d11_createBasicSampler(device);
 
     // font texture
-    int fontTexHeight;
-    const auto fontTex = d3d11_loadStaticTextureFromBmp(device, L"resources\\font\\font.bmp", &fontTexHeight);
+    const auto fontTex = d3d11_loadStaticTextureFromBmp(device, L"resources\\font\\font.bmp");
     ctx->fontTexture.texture = fontTex;
     ctx->fontTexture.srv = d3d11_createSrvFromTexture(device, fontTex);
     ctx->fontTexture.sampler = d3d11_createBasicSampler(device);
