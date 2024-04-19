@@ -6,16 +6,27 @@ struct PixelInput {
     float2 TexCoord : TEXCOORD0;
 };
 
+cbuffer AspectRatioBuffer : register(b0) {
+    uint DistanceRange;
+    float TexelSize;
+};
+
+float Median(float r, float g, float b) {
+    return max(min(r, g), min(max(r, g), b));
+}
+
 float SDF(float2 uv) {
-    // fetch the SDF value from the texture
-    // use the g_Sampler to interpolate values between texels
-    float dist = g_Texture.Sample(g_Sampler, uv).r;
+    const float CUTOFF = 0.5f;
+    const float SHARPNESS = 2.0f;
 
-    // choose a value for the smoothing radius
-    const float smoothing = 0.01f;
-    float smoothed = smoothstep(0.5f - smoothing, 0.5f + smoothing, dist);
+    float4 sample = g_Texture.Sample(g_Sampler, uv);
+    float winner = Median(sample.r, sample.g, sample.b);
+    float dist = (CUTOFF - winner) * DistanceRange;
+    float2 duv = fwidth(uv);
+    float dtex = length(duv * float2(TexelSize, TexelSize));
+    float pixelDist = dist * 1.5f / dtex;
 
-    return smoothed;
+    return saturate(0.5 - pixelDist);
 }
 
 float4 main(PixelInput input) : SV_TARGET {

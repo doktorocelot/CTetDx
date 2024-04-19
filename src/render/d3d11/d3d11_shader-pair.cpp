@@ -82,10 +82,15 @@ void shaderPair_init(D3d11ShaderPair *pair, ID3D11Device *device, LPCWSTR vertex
     pixelShaderBlob->Release();
 
     pair->constantBufferVsPtr = 0;
+    pair->constantBufferPsPtr = 0;
 }
 
 void shaderPair_pushCBufferVs(D3d11ShaderPair *pair, ID3D11Buffer *buffer) {
     pair->constantBuffersVs[pair->constantBufferVsPtr++] = buffer;
+}
+
+void shaderPair_pushCBufferPs(D3d11ShaderPair *pair, ID3D11Buffer *buffer) {
+    pair->constantBuffersPs[pair->constantBufferPsPtr++] = buffer;
 }
 
 void shaderPair_cleanup(D3d11ShaderPair *pair) {
@@ -98,5 +103,6 @@ void shaderPair_use(D3d11ShaderPair *pair, ID3D11DeviceContext *deviceContext) {
     deviceContext->VSSetShader(pair->vertexShader, nullptr, 0);
     deviceContext->PSSetShader(pair->pixelShader, nullptr, 0);
     deviceContext->IASetInputLayout(pair->inputLayout);
-    deviceContext->VSSetConstantBuffers(0, pair->constantBufferVsPtr + 1, pair->constantBuffersVs);
+    deviceContext->VSSetConstantBuffers(0, pair->constantBufferVsPtr, pair->constantBuffersVs);
+    deviceContext->PSSetConstantBuffers(0, pair->constantBufferPsPtr, pair->constantBuffersPs);
 }

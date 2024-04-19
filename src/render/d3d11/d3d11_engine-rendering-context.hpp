@@ -10,6 +10,11 @@ struct alignas(16) AspectConstantBuffer {
     float aspectRatio;
 };
 
+struct alignas(16) SDFConstantBuffer {
+    unsigned int distanceRange;
+    float texelSize;
+};
+
 struct D3d11EngineRenderingCtx {
     BlockBatch blockBatch;
     D3d11Mesh blockMesh;
@@ -18,6 +23,7 @@ struct D3d11EngineRenderingCtx {
     D3d11Texture fontTexture;
     TextRenderer textRenderer;
     D3d11Mesh textMesh;
+    ID3D11Buffer *textSdfBuffer;
     ID3D11BlendState *textBlendState;
     IngameText ingameText;
 };

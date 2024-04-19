@@ -9,7 +9,7 @@
 #include "../../win32/win32_kill-program.hpp"
 #include "../../win32/win32_memory.hpp"
 
-static void createTextMesh(D3d11Mesh *mesh, TextRenderer *textRenderer, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer) {
+static void createTextMesh(D3d11Mesh *mesh, TextRenderer *textRenderer, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer, ID3D11Buffer *sdfBuffer) {
     // Create vertex
     d3d11_createBuffer(device, textRenderer->chars, &mesh->vertexBuffer, {
             .ByteWidth = sizeof(CharVertex) * CHAR_QUAD_VERT_COUNT * MAX_CHAR_QUADS,
@@ -67,6 +67,8 @@ static void createTextMesh(D3d11Mesh *mesh, TextRenderer *textRenderer, ID3D11De
                     layoutDesc, sizeof(layoutDesc) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 
     shaderPair_pushCBufferVs(&mesh->shaders, aspectRatioBuffer);
+
+    shaderPair_pushCBufferPs(&mesh->shaders, sdfBuffer);
 }
 
 void d3d11EngineRenderingCtx_init(D3d11EngineRenderingCtx *ctx, ID3D11Device *device, ID3D11Buffer *aspectRatioBuffer) {
@@ -98,14 +100,23 @@ void d3d11EngineRenderingCtx_init(D3d11EngineRenderingCtx *ctx, ID3D11Device *de
         fontData = win32_loadFileIntoNewVirtualBuffer(fontDataHandle);
         win32_closeFile(fontDataHandle);
     } else {
-        win32_killProgram(L"Could not load font data from resources\\font\\font.bin");
+        win32_killProgram(L"Could not load font data from resources\\font\\font.ctf");
         return;
     }    
     textRenderer_init(&ctx->textRenderer, fontData);
     win32_deallocateMemory(fontData);
     
     // font mesh
-    createTextMesh(&ctx->textMesh, &ctx->textRenderer, device, aspectRatioBuffer);
+    SDFConstantBuffer sdfConstantBuffer{};
+    sdfConstantBuffer.distanceRange = ctx->textRenderer.distanceRange;
+    sdfConstantBuffer.texelSize = ctx->textRenderer.resolution;
+    d3d11_createBuffer(device, &sdfConstantBuffer, &ctx->textSdfBuffer, {
+        .ByteWidth = sizeof(SDFConstantBuffer),
+        .Usage = D3D11_USAGE_DEFAULT,
+        .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
+        .MiscFlags = 0,
+    });
+    createTextMesh(&ctx->textMesh, &ctx->textRenderer, device, aspectRatioBuffer, ctx->textSdfBuffer);
 
     // font blendstate
     D3D11_BLEND_DESC blendDesc = {};
