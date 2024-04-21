@@ -33,7 +33,7 @@ PcmF32Buffer wav_init_f32(unsigned char *wavFileData,
     }
     return {
         .data = reinterpret_cast<float *>(destBuffer),
-        .len = destBufferSize / sizeof(float)
+        .lenFrames = destBufferSize / sizeof(float) / 2
     };
 }
 

@@ -7,18 +7,17 @@ void soundPool_add(SoundPool *pool, PcmF32Buffer *buffer) {
     pool->len++;
 }
 
-void soundPool_mix(SoundPool *pool, float *dest, size_t frames) {
-    if (pool->len <= 0) return;
+void writeAudio(SoundPool *pool, float *dest, size_t frames) {
     for (int f = 0; f < frames; f++) {
         dest[0] = 0;
         dest[1] = 0;
         for (int i = 0; i < pool->len; i++) {
             if (
                 const auto sound = &pool->sounds[i];
-                sound->accumulator < sound->pcmBuffer->len
+                sound->accumulator < sound->pcmBuffer->lenFrames
             ) {
-                const float *sample = &sound->pcmBuffer->data[sound->accumulator];
-                sound->accumulator += 2;
+                const float *sample = &sound->pcmBuffer->data[sound->accumulator * 2];
+                sound->accumulator++;
                 dest[0] += *sample;
                 dest[1] += *(sample + 1);
             } else {
@@ -33,4 +32,16 @@ void soundPool_mix(SoundPool *pool, float *dest, size_t frames) {
         }
         pool->killListLen = 0;
     }
+}
+
+void writeZeroes(float *dest, size_t frames) {
+    for (int f = 0; f < frames; f++) {
+        dest[0] = 0;
+        dest[1] = 0;
+    }
+}
+
+void soundPool_mix(SoundPool *pool, float *dest, size_t frames) {
+    if (pool->len <= 0) writeZeroes(dest, frames);
+    else writeAudio(pool, dest, frames);
 }

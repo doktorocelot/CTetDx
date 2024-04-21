@@ -3,7 +3,7 @@
 
 struct PcmF32Buffer {
     float *data;
-    size_t len;
+    size_t lenFrames;
 };
 
 PcmF32Buffer wav_init_f32(unsigned char *wavFileData, unsigned char *destBuffer, size_t destBufferSize);
