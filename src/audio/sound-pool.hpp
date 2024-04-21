@@ -6,7 +6,7 @@ struct SoundSample {
     float left, right;
 };
 struct Sound {
-    double accumulator;
+    size_t accumulator;
     PcmF32Buffer *pcmBuffer;
 };
 struct SoundPool {
@@ -16,4 +16,4 @@ struct SoundPool {
     size_t killListLen;
 };
 void soundPool_add(SoundPool *pool, PcmF32Buffer *buffer);
-void soundPool_mix(SoundPool *pool, float *dest, size_t frames, double speed);
+void soundPool_mix(SoundPool *pool, float *dest, size_t frames);
