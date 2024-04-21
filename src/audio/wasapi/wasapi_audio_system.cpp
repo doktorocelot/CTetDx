@@ -109,7 +109,8 @@ void wasapiAudio_process(WasapiAudioSystem *audioSystem, SoundPool *soundPool) {
         framesToWrite,
         &audioDataBuffer);
     win32_checkResult(result, "Audio RenderClient -> GetBuffer");
-    soundPool_mix(soundPool, reinterpret_cast<float *>(audioDataBuffer), framesToWrite);
+    double speed = static_cast<double>(44100) / static_cast<double>(audioSystem->sampleRate);
+    soundPool_mix(soundPool, reinterpret_cast<float *>(audioDataBuffer), framesToWrite, speed);
     /*for (int i = 0; i < framesToWrite * 2; i += 2) {
         const auto castedBuffer =
             reinterpret_cast<float *>(audioDataBuffer);
