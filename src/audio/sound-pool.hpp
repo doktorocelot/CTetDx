@@ -2,6 +2,9 @@
 #include "wav.hpp"
 
 #define MAX_SOUNDS 256
+struct SoundSample {
+    float left, right;
+};
 struct Sound {
     size_t accumulator;
     PcmF32Buffer *pcmBuffer;
@@ -9,8 +12,8 @@ struct Sound {
 struct SoundPool {
     Sound sounds[MAX_SOUNDS];
     size_t len;
-    size_t iter;
+    unsigned int killList[MAX_SOUNDS];
+    size_t killListLen;
 };
 void soundPool_add(SoundPool *pool, PcmF32Buffer *buffer);
-void soundPool_startIter(SoundPool *pool);
-const float *soundPool_next(SoundPool *pool);
+void soundPool_mix(SoundPool *pool, float *dest, size_t frames);
